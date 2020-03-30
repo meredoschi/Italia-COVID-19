@@ -4,13 +4,13 @@ This repository is under development and will contain my own, personal calculati
 
 <em>I am not an epidemiologist, just a simple mathematician.</em>
 
-## Technical instructions
+## Instructions
 
 In case you wished to verify the output produced by the project locally, on your machine, a folder named "COVID-19" with the official data from the Italian Civil Protection Department should be present.  That is, manually downloaded or cloned via git.
 
-<em>It was included in .gitignore, as appropriate</em>.
+<em>It was included in this project's .gitignore file, as appropriate</em>.
 
-## Technical information
+## My local environment
 
 R version 3.6.3 (2020-02-29)
 RStudio version 1.1.463

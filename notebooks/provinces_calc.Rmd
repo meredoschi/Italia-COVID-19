@@ -1,0 +1,157 @@
+---
+title: "Italian provinces (own calculations) - work in progress (DRAFT)"
+author: "Marcelo Eduardo Redoschi"
+output: html_document
+---
+
+## 1. Initial setup 
+
+### Libraries and paths 
+
+```{r}
+library(readr)
+library(lubridate)
+library(dplyr)
+library(markdown)
+source("helper_functions.R")
+datasets_path<-file.path(getwd(),"..", "COVID-19") 
+```
+
+### Date functions 
+
+```{r}
+today<-today() 
+yesterday<-yesterday()
+two_days_ago<-two_days_ago() 
+three_days_ago<-three_days_ago()
+```
+
+## 2. Provincial data - CSV Import step
+
+*dpc-covid19-ita-province.csv*
+```{r}
+provinces_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
+
+# na.string explicitly set to something else, since NA in this file means the Naples province abbreviation!
+provinces_raw<-read.csv(provinces_csv_fname,encoding="UTF-8", na.strings="undefined") 
+
+
+```
+
+## 3. Filter out rows marked "In fase di definizione/aggiornamento"
+
+```{r}
+to_be_determined_or_updated<-"In fase di definizione/aggiornamento"
+provinces_it<-provinces_raw[provinces_raw$denominazione_provincia!=to_be_determined_or_updated,]
+```
+
+## 4. Italian administrative regions
+```{r}
+italian_adm_regions<-distinct(select(provinces_it, denominazione_regione, codice_regione))
+col_names<-colnames(italian_adm_regions)
+intl_col_names<-gsub("denominazione_regione","region_name",col_names)
+intl_col_names2<-gsub("codice_regione","region_code",intl_col_names)
+colnames(italian_adm_regions)<-intl_col_names2 
+rm(intl_col_names)
+rm(intl_col_names2)
+italian_adm_regions<-arrange(italian_adm_regions, region_name)
+```
+
+## 5. Italian provinces (belong to one region and contain more than one city or municipality)
+```{r}
+italian_adm_provinces<-distinct(select(provinces_it, denominazione_provincia, codice_provincia, sigla_provincia, denominazione_regione, codice_regione, lat, long))
+col_names<-colnames(italian_adm_provinces)
+intl_col_names<-gsub("denominazione_provincia","province_name",col_names)
+intl_col_names2<-gsub("codice_provincia","province_code",intl_col_names)
+intl_col_names3<-gsub("sigla_provincia","province_abbreviation",intl_col_names2)
+intl_col_names4<-gsub("denominazione_regione","region_name",intl_col_names3)
+intl_col_names5<-gsub("codice_regione","region_code",intl_col_names4)
+
+colnames(italian_adm_provinces)<-intl_col_names5 
+rm(intl_col_names)
+rm(intl_col_names2)
+rm(intl_col_names3)
+rm(intl_col_names4)
+rm(intl_col_names5)
+italian_adm_provinces<-arrange(italian_adm_provinces,  province_name)
+# should have zero observations, if Naples was imported correctly.
+# provinces_without_abbreviation<-italian_adm_provinces[is.na(italian_adm_provinces$province_abbreviation),] 
+```
+
+## 6. Province case data
+
+
+### Initial preparation 
+
+```{r}
+provinces<-select(provinces_it, data, codice_provincia, totale_casi)
+provinces$dt<-as.Date(ymd_hms(provinces$data))
+provinces$data<-NULL 
+col_names<-colnames(provinces)
+intl_col_names<-gsub("codice_provincia","province_code",col_names)
+intl_col_names2<-gsub("totale_casi","total_cases",intl_col_names)
+colnames(provinces)<-intl_col_names2
+```
+
+### Today 
+
+```{r}
+prov_today<-provinces[provinces$dt==today,]
+prov_today$dt<-NULL
+prov_today$current_total<-prov_today$total_cases 
+prov_today$total_cases<-NULL 
+```
+
+### Yesterday 
+
+```{r}
+prov_yesterday<-provinces[provinces$dt==yesterday,]
+prov_yesterday$dt<-NULL
+prov_yesterday$yesterday_total_cases<-prov_yesterday$total_cases 
+prov_yesterday$total_cases<-NULL
+```
+
+### Join
+```{r}
+prov<-inner_join(prov_yesterday, prov_today)
+prov$todays_rate<-prov$current_total/prov_yesterday$yesterday_total_cases
+```
+
+### Two days ago
+
+```{r}
+prov_2_days_ago<-provinces[provinces$dt==two_days_ago,]
+prov_2_days_ago$dt<-NULL
+prov_2_days_ago$total_two_days_ago<-prov_2_days_ago$cases
+col_names<-colnames(prov_2_days_ago)
+revised_col_names<-gsub("total_cases","total_cases_two_days_ago",col_names)
+colnames(prov_2_days_ago)<-revised_col_names
+```
+
+### Three days ago
+
+```{r}
+prov_3_days_ago<-provinces[provinces$dt==three_days_ago,]
+prov_3_days_ago$dt<-NULL
+prov_3_days_ago$total_two_days_ago<-prov_3_days_ago$cases
+col_names<-colnames(prov_3_days_ago)
+revised_col_names<-gsub("total_cases","total_cases_three_days_ago",col_names)
+colnames(prov_3_days_ago)<-revised_col_names
+```
+
+```{r}
+provinces_calc<-inner_join(prov_today, prov_yesterday)
+provinces_calc<-inner_join(provinces_calc, prov_2_days_ago)
+provinces_calc<-inner_join(provinces_calc, prov_3_days_ago)
+provinces_calc$current_rate<-provinces_calc$current_total/provinces_calc$yesterday_total_cases
+provinces_calc$yesterdays_rate<-provinces_calc$yesterday_total_cases/provinces_calc$total_cases_two_days_ago
+provinces_calc$rate_two_days_ago<-provinces_calc$total_cases_two_days_ago/provinces_calc$total_cases_three_days_ago
+province_names<-select(italian_adm_provinces, province_code, province_name, province_abbreviation)
+provinces_calc<-inner_join(province_names, provinces_calc)
+rm(province_names)
+```
+
+```{r}
+write.csv(provinces_calc,"provinces_calc.csv")
+```
+*Last updated: 30/3/2020*
