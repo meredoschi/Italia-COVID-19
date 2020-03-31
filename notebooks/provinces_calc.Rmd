@@ -154,4 +154,4 @@ rm(province_names)
 ```{r}
 write.csv(provinces_calc,"provinces_calc.csv")
 ```
-*Last updated: 30/3/2020*
+*Last updated: 31/3/2020*

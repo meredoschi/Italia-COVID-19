@@ -1,0 +1,47 @@
+---
+title: "National data - work in progress (DRAFT)"
+author: "Marcelo Eduardo Redoschi"
+output: html_document
+---
+
+### Libraries and paths 
+
+```{r}
+library(readr)
+library(lubridate)
+library(dplyr)
+library(markdown)
+source("helper_functions.R")
+datasets_path<-file.path(getwd(),"..", "COVID-19") 
+```
+
+## 2. National data - CSV Import step
+
+*dpc-covid19-ita-andamento-nazionale.csv*
+```{r}
+national_csv_fname<-file.path(datasets_path,"dati-andamento-nazionale","dpc-covid19-ita-andamento-nazionale.csv")
+national<-read.csv(national_csv_fname,encoding="UTF-8", na.strings="undefined") 
+```
+
+## 3. Initial setup
+```{r}
+national$dt<-as.Date(ymd_hms(national$data))
+national$data<-NULL 
+national$stato<-NULL
+col_names<-colnames(national)
+
+intl_col_names<-gsub("ricoverati_con_sintomi","hospitalized_with_symptoms",col_names)
+intl_col_names<-gsub("terapia_intensiva","intensive_care",intl_col_names)
+intl_col_names<-gsub("totale_ospedalizzati","hospitalized_total",intl_col_names)
+intl_col_names<-gsub("isolamento_domiciliare","home_isolation",intl_col_names)
+intl_col_names<-gsub("variazione_totale_positivi","num_positives_variation",intl_col_names)
+intl_col_names<-gsub("totale_positivi","positives_remaining",intl_col_names)
+intl_col_names<-gsub("nuovi_positivi","positives_added_today",intl_col_names)
+intl_col_names<-gsub("dimessi_guariti","total_discharged_healed",intl_col_names)
+intl_col_names<-gsub("deceduti","total_deceased",intl_col_names)
+intl_col_names<-gsub("totale_casi","total_cases",intl_col_names)
+intl_col_names<-gsub("tamponi","tests",intl_col_names)
+intl_col_names<-gsub("note_","notes_",intl_col_names)
+colnames(national)<-intl_col_names
+```
+*Last updated: 31/3/2020*
