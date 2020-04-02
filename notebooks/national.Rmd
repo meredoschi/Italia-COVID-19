@@ -66,5 +66,22 @@ nat3$deceased_delta<-nat3$total_deceased-nat3$total_deceased_previous
 nat3$positives_remaining_delta<-nat3$positives_remaining-nat3$positives_remaining_previous
 identical(nat3$positives_remaining_delta, nat3$num_positives_variation)
 ```
+```{r}
+nat3$total_tests_cases_ratio_prev<-nat3$tests_prev/nat3$total_cases_previous
+nat3$tests_per_positive_on_dt_ratio<-nat3$tests_delta/nat3$positives_added_on_dt
+nat3$positives_remaining_percent_delta<-nat3$positives_remaining_delta/nat3$positives_remaining_previous*100
+```
+
+
+```{r}
+plot(nat3$dt,nat3$positives_remaining_delta,type='b', main="Positives remaining (daily variation)",xlab='',ylab="People", col="orange")
+```
+
+```{r}
+nat3$deceased_per_positives_day_before_ratio<-nat3$deceased_delta/nat3$positives_remaining_previous
+nat4<-select(nat3, dt, deceased_per_positives_day_before_ratio)
+plot(nat4$dt, nat4$deceased_per_positives_day_before_ratio*100, type='l', main="Fatalities per positives remaining on the previous day",xlab='',ylab="%",col="red")
+```
+
 
 *Last updated: 2/4/2020*
