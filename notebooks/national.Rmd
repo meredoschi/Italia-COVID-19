@@ -36,12 +36,35 @@ intl_col_names<-gsub("totale_ospedalizzati","hospitalized_total",intl_col_names)
 intl_col_names<-gsub("isolamento_domiciliare","home_isolation",intl_col_names)
 intl_col_names<-gsub("variazione_totale_positivi","num_positives_variation",intl_col_names)
 intl_col_names<-gsub("totale_positivi","positives_remaining",intl_col_names)
-intl_col_names<-gsub("nuovi_positivi","positives_added_today",intl_col_names)
+intl_col_names<-gsub("nuovi_positivi","positives_added_on_dt",intl_col_names)
 intl_col_names<-gsub("dimessi_guariti","total_discharged_healed",intl_col_names)
 intl_col_names<-gsub("deceduti","total_deceased",intl_col_names)
 intl_col_names<-gsub("totale_casi","total_cases",intl_col_names)
 intl_col_names<-gsub("tamponi","tests",intl_col_names)
 intl_col_names<-gsub("note_","notes_",intl_col_names)
 colnames(national)<-intl_col_names
+national<-arrange(national, dt)
 ```
-*Last updated: 31/3/2020*
+
+
+```{r}
+nat<-national[-1,]
+nat$dt_previous<-ymd(nat$dt)-1
+nat2<-national[-(nrow(national)),]
+nat2$notes_it<-NULL 
+nat2$notes_en<-NULL 
+col_names_previous_dt<-paste(colnames(nat2),'previous',sep="_")
+colnames(nat2)<-col_names_previous_dt
+nat3<-full_join(nat, nat2, by='dt_previous')
+nat3<-arrange(nat3, dt)
+nat3$tests_delta<-nat3$tests-nat3$tests_previous
+nat3$home_isolation_delta<-nat3$home_isolation-nat3$home_isolation_previous
+nat3$hospitalized_with_symptoms_delta<-nat3$hospitalized_with_symptoms-nat3$hospitalized_with_symptoms_previous
+nat3$intensive_care_delta<-nat3$intensive_care-nat3$intensive_care_previous
+nat3$discharged_healed_delta<-nat3$total_discharged_healed-nat3$total_discharged_healed_previous
+nat3$deceased_delta<-nat3$total_deceased-nat3$total_deceased_previous
+nat3$positives_remaining_delta<-nat3$positives_remaining-nat3$positives_remaining_previous
+identical(nat3$positives_remaining_delta, nat3$num_positives_variation)
+```
+
+*Last updated: 2/4/2020*
