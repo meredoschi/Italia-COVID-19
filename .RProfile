@@ -1,4 +1,4 @@
-Sys.setlocale(locale = 'en_US.UTF-8')
+Sys.setlocale(locale = 'it_IT.UTF-8')
 library(readr)
 library(lubridate)
 library(dplyr)
