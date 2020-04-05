@@ -113,7 +113,7 @@ nat6$trailing_dt<-nat6$dt
 
 for (i in 1:nrow(nat5) ) {
 	
-	x<-nat5[i,]$inactive
+	x<-nat5[i,]$inactive_discharged_healed_deceased
 	y<-backlog_dt(nat5, x) 
 #	print(paste(i, y))
 	nat6$trailing_dt[i]<-y
