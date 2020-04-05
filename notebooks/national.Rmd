@@ -99,3 +99,29 @@ plot(nat4$dt, nat4$discharged_or_healed_to_deceased_ratio, type='l', main='Daily
 print(select(nat4, dt, discharged_or_healed_to_deceased_ratio))
 summary(nat4$discharged_or_healed_to_deceased_ratio)
 ```
+
+
+```{r}
+nat5<-select(nat3, dt, total_discharged_healed, total_deceased, total_cases)
+nat5$inactive_discharged_healed_deceased<-nat5$total_discharged_healed+nat5$total_deceased
+nat5$active<-nat5$total_cases-nat5$inactive_discharged_healed_deceased
+nat5$pos<-backlog_dt(nat5, nat5$inactive_discharged_healed_deceased)
+
+nat6<-select(nat5,dt, inactive_discharged_healed_deceased, total_cases)
+
+nat6$trailing_dt<-nat6$dt 
+
+for (i in 1:nrow(nat5) ) {
+	
+	x<-nat5[i,]$inactive
+	y<-backlog_dt(nat5, x) 
+#	print(paste(i, y))
+	nat6$trailing_dt[i]<-y
+	nat6$num_days_trailing<-nat6$dt-nat6$trailing_dt
+}
+```
+
+```{r}
+initial_num_cases<-min(nat6$total_cases)
+national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
+```

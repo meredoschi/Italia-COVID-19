@@ -22,3 +22,14 @@
     days_before_today(3)
   }
   
+  three_days_ago  <- function(){ 
+    days_before_today(3)
+  }
+  
+  
+  # n = number of inactive cases (generally at a later date).  Used in "backlog" computations.  
+  backlog_dt  <- function(df, n){ 
+    temp<-df[df$active>=n,]
+    min(temp$dt)
+  }
+  
