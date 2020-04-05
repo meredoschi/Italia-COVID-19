@@ -97,7 +97,6 @@ colnames(provinces)<-intl_col_names2
 
 ```{r}
 prov_today<-provinces[provinces$dt==today,]
-prov_today$dt<-NULL
 prov_today$current_total<-prov_today$total_cases 
 prov_today$total_cases<-NULL 
 ```
@@ -151,7 +150,71 @@ provinces_calc<-inner_join(province_names, provinces_calc)
 rm(province_names)
 ```
 
+Cubic rate calculation 
 ```{r}
+provinces_calc$cubic_rate<-(provinces_calc$current_total/provinces_calc$total_cases_three_days_ago)^(1/3)
+provinces_calc$trend<-round((provinces_calc$current_rate-provinces_calc$cubic_rate)*100, digits=1)
+```
+
+
+```{r} 
 write.csv(provinces_calc,"provinces_calc.csv")
 ```
-*Last updated: 31/3/2020*
+
+### Graph - Total case progression by province (last three days - cubic rate)
+
+#### Emilia-Romagna 
+```{r}
+specified_region<-"Emilia-Romagna"
+local_province_codes<-data.frame(italian_adm_provinces[grep(specified_region,italian_adm_provinces$region_name),]$province_code)
+colnames(local_province_codes)<-c('province_code')
+local_province_data<-inner_join(provinces_calc, local_province_codes, by='province_code')
+
+local_province_data$abbrev<-toupper(as.character(substring(local_province_data$province_abbreviation,1,2)))
+local_province_data$c<-(local_province_data$cubic_rate-1)*100
+local_province_data_key<-select(local_province_data,province_name, province_abbreviation )
+local_province_data_key
+
+most_recent_dt<-max(local_province_data$dt)
+three_days_prior<-most_recent_dt-3 
+
+plot(main=paste(specified_region,"(Italy)"), row_number(local_province_data$abbrev), local_province_data$c, xaxt='n', xlab='COVID-19 Epidemic (total case progression by province)', ylab="Average % rate (last three days - cubic root) ", sub=paste(format(three_days_prior,"%d %b"),"-",format(most_recent_dt,"%d %b %Y")), col='#6302dd')
+axis(1, row_number(local_province_data$abbrev),local_province_data$abbrev)
+```
+
+#### Lombardy
+```{r}
+specified_region<-"Lombardia"
+local_province_codes<-data.frame(italian_adm_provinces[grep(specified_region,italian_adm_provinces$region_name),]$province_code)
+colnames(local_province_codes)<-c('province_code')
+local_province_data<-inner_join(provinces_calc, local_province_codes, by='province_code')
+
+local_province_data$abbrev<-toupper(as.character(substring(local_province_data$province_abbreviation,1,2)))
+local_province_data$c<-(local_province_data$cubic_rate-1)*100
+local_province_data_key<-select(local_province_data,province_name, province_abbreviation )
+local_province_data_key
+
+most_recent_dt<-max(local_province_data$dt)
+three_days_prior<-most_recent_dt-3 
+
+plot(main=paste(specified_region,"(Italy)"), row_number(local_province_data$abbrev), local_province_data$c, xaxt='n', xlab='COVID-19 Epidemic (total case progression by province)', ylab="Average % rate (last three days - cubic root) ", sub=paste(format(three_days_prior,"%d %b"),"-",format(most_recent_dt,"%d %b %Y")), col='#6302dd')
+axis(1, row_number(local_province_data$abbrev),local_province_data$abbrev)
+```
+#### Veneto
+```{r}
+specified_region<-"Veneto"
+local_province_codes<-data.frame(italian_adm_provinces[grep(specified_region,italian_adm_provinces$region_name),]$province_code)
+colnames(local_province_codes)<-c('province_code')
+local_province_data<-inner_join(provinces_calc, local_province_codes, by='province_code')
+
+local_province_data$abbrev<-toupper(as.character(substring(local_province_data$province_abbreviation,1,2)))
+local_province_data$c<-(local_province_data$cubic_rate-1)*100
+local_province_data_key<-select(local_province_data,province_name, province_abbreviation )
+local_province_data_key
+
+most_recent_dt<-max(local_province_data$dt)
+three_days_prior<-most_recent_dt-3 
+
+plot(main=paste(specified_region,"(Italy)"), row_number(local_province_data$abbrev), local_province_data$c, xaxt='n', xlab='COVID-19 Epidemic (total case progression by province)', ylab="Average % rate (last three days - cubic root) ", sub=paste(format(three_days_prior,"%d %b"),"-",format(most_recent_dt,"%d %b %Y")), col='#6302dd')
+axis(1, row_number(local_province_data$abbrev),local_province_data$abbrev)
+```
