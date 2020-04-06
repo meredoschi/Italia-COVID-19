@@ -1,12 +1,10 @@
 ---
-title: "National data - work in progress (DRAFT)"
+title: "National situation - Charts"
 author: "Marcelo Eduardo Redoschi"
 output: html_document
 ---
 
-### Libraries and paths 
-
-```{r}
+```{r echo=FALSE, message=FALSE}
 library(readr)
 library(lubridate)
 library(dplyr)
@@ -15,16 +13,14 @@ source("helper_functions.R")
 datasets_path<-file.path(getwd(),"..", "COVID-19") 
 ```
 
-## 2. National data - CSV Import step
+*Source: dpc-covid19-ita-andamento-nazionale.csv, own calculations*
 
-*dpc-covid19-ita-andamento-nazionale.csv*
-```{r}
+```{r echo=FALSE, message=FALSE}
 national_csv_fname<-file.path(datasets_path,"dati-andamento-nazionale","dpc-covid19-ita-andamento-nazionale.csv")
 national<-read.csv(national_csv_fname,encoding="UTF-8", na.strings="undefined") 
 ```
 
-## 3. Initial setup
-```{r}
+```{r echo=FALSE, message=FALSE}
 national$dt<-as.Date(ymd_hms(national$data))
 national$data<-NULL 
 national$stato<-NULL
@@ -46,8 +42,7 @@ colnames(national)<-intl_col_names
 national<-arrange(national, dt)
 ```
 
-
-```{r}
+```{r echo=FALSE, message=FALSE}
 nat<-national[-1,]
 nat$dt_previous<-ymd(nat$dt)-1
 nat2<-national[-(nrow(national)),]
@@ -64,9 +59,9 @@ nat3$intensive_care_delta<-nat3$intensive_care-nat3$intensive_care_previous
 nat3$discharged_healed_delta<-nat3$total_discharged_healed-nat3$total_discharged_healed_previous
 nat3$deceased_delta<-nat3$total_deceased-nat3$total_deceased_previous
 nat3$positives_remaining_delta<-nat3$positives_remaining-nat3$positives_remaining_previous
-identical(nat3$positives_remaining_delta, nat3$num_positives_variation)
+#identical(nat3$positives_remaining_delta, nat3$num_positives_variation)
 ```
-```{r}
+```{r echo=FALSE, message=FALSE}
 nat3$total_tests_cases_ratio_prev<-nat3$tests_prev/nat3$total_cases_previous
 nat3$tests_per_positive_on_dt_ratio<-nat3$tests_delta/nat3$positives_added_on_dt
 nat3$positives_remaining_percent_delta<-nat3$positives_remaining_delta/nat3$positives_remaining_previous*100
@@ -75,43 +70,43 @@ nat3$discharged_healed_per_positives_day_before_ratio<-nat3$discharged_healed_de
 ```
 
 
-```{r}
-plot(nat3$dt,nat3$positives_remaining_delta,type='b', main="Positives remaining (daily variation)",xlab='',ylab="People", col="orange")
+```{r echo=FALSE, message=FALSE}
+plot(nat3$dt,nat3$positives_remaining_delta,type='b', main="Additional active cases per day",xlab='Date',ylab="Net cases, excluding latest fatalities, discharged or healed", col="orange")
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE}
 nat4<-select(nat3, dt, deceased_per_positives_day_before_ratio, discharged_healed_per_positives_day_before_ratio)
 nat4$discharged_or_healed_to_deceased_ratio<-nat4$discharged_healed_per_positives_day_before_ratio/nat4$deceased_per_positives_day_before_ratio
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE}
 plot(nat4$dt, nat4$deceased_per_positives_day_before_ratio*100, type='l', main='Fatalities per active cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="%",col="red")
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE}
 plot(nat4$dt, nat4$discharged_healed_per_positives_day_before_ratio*100, type='l', main='Discharged or healed per positive cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="%",col="darkgreen")
 ```
-```{r}
+```{r echo=FALSE, message=FALSE}
 plot(nat4$dt, nat4$discharged_or_healed_to_deceased_ratio, type='l', main='Daily proportion: discharged or healed compared to deceased',sub="Given the remaining positive cases on the day before",xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="Higher numbers are better (1 = equal, 2 = twice, etc)",col="orange")
 ```
 
-```{r}
-print(select(nat4, dt, discharged_or_healed_to_deceased_ratio))
-summary(nat4$discharged_or_healed_to_deceased_ratio)
+```{r echo=FALSE, message=FALSE}
+#print(select(nat4, dt, discharged_or_healed_to_deceased_ratio))
+#summary(nat4$discharged_or_healed_to_deceased_ratio)
 ```
 
 
-```{r}
-nat5<-select(nat3, dt, total_discharged_healed, total_deceased, total_cases)
+```{r echo=FALSE, message=FALSE}
+nat5<-select(nat3, dt, total_discharged_healed, total_deceased, positives_remaining, total_cases)
 nat5$inactive_discharged_healed_deceased<-nat5$total_discharged_healed+nat5$total_deceased
 nat5$active<-nat5$total_cases-nat5$inactive_discharged_healed_deceased
 nat5$pos<-backlog_dt(nat5, nat5$inactive_discharged_healed_deceased)
 
-nat6<-select(nat5,dt, inactive_discharged_healed_deceased, total_cases)
+nat6<-select(nat5,dt, inactive_discharged_healed_deceased, positives_remaining, total_cases)
 
 nat6$trailing_dt<-nat6$dt 
 
-for (i in 1:nrow(nat5) ) {
+for (i in 1:nrow(nat5) ) { 
 	
 	x<-nat5[i,]$inactive_discharged_healed_deceased
 	y<-backlog_dt(nat5, x) 
@@ -121,7 +116,9 @@ for (i in 1:nrow(nat5) ) {
 }
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE}
 initial_num_cases<-min(nat6$total_cases)
 national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
 ```
+
+**Last updated: 6/Apr/2020**

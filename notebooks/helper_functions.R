@@ -29,7 +29,7 @@
   
   # n = number of inactive cases (generally at a later date).  Used in "backlog" computations.  
   backlog_dt  <- function(df, n){ 
-    temp<-df[df$active>=n,]
+    temp<-df[df$positives_remaining>=n,]
     min(temp$dt)
   }
   
