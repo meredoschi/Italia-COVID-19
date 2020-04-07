@@ -1,14 +1,12 @@
 ---
-title: "Italian provinces (own calculations) - work in progress (DRAFT)"
+title: "Situation by province - Charts"
 author: "Marcelo Eduardo Redoschi"
 output: html_document
 ---
 
+```{r echo=FALSE, message=FALSE}
 ## 1. Initial setup 
-
 ### Libraries and paths 
-
-```{r}
 library(readr)
 library(lubridate)
 library(dplyr)
@@ -17,19 +15,10 @@ source("helper_functions.R")
 datasets_path<-file.path(getwd(),"..", "COVID-19") 
 ```
 
-### Date functions 
-
-```{r}
-today<-today() 
-yesterday<-yesterday()
-two_days_ago<-two_days_ago() 
-three_days_ago<-three_days_ago()
-```
-
-## 2. Provincial data - CSV Import step
 
 *dpc-covid19-ita-province.csv*
-```{r}
+```{r echo=FALSE, message=FALSE}
+## 2. Provincial data - CSV Import step
 provinces_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
 
 # na.string explicitly set to something else, since NA in this file means the Naples province abbreviation!
@@ -38,15 +27,15 @@ provinces_raw<-read.csv(provinces_csv_fname,encoding="UTF-8", na.strings="undefi
 
 ```
 
-## 3. Filter out rows marked "In fase di definizione/aggiornamento"
 
-```{r}
+```{r echo=FALSE, message=FALSE}
+## 3. Filter out rows marked "In fase di definizione/aggiornamento"
 to_be_determined_or_updated<-"In fase di definizione/aggiornamento"
 provinces_it<-provinces_raw[provinces_raw$denominazione_provincia!=to_be_determined_or_updated,]
 ```
 
+```{r echo=FALSE, message=FALSE}
 ## 4. Italian administrative regions
-```{r}
 italian_adm_regions<-distinct(select(provinces_it, denominazione_regione, codice_regione))
 col_names<-colnames(italian_adm_regions)
 intl_col_names<-gsub("denominazione_regione","region_name",col_names)
@@ -57,8 +46,8 @@ rm(intl_col_names2)
 italian_adm_regions<-arrange(italian_adm_regions, region_name)
 ```
 
+```{r echo=FALSE, message=FALSE}
 ## 5. Italian provinces (belong to one region and contain more than one city or municipality)
-```{r}
 italian_adm_provinces<-distinct(select(provinces_it, denominazione_provincia, codice_provincia, sigla_provincia, denominazione_regione, codice_regione, lat, long))
 col_names<-colnames(italian_adm_provinces)
 intl_col_names<-gsub("denominazione_provincia","province_name",col_names)
@@ -78,12 +67,9 @@ italian_adm_provinces<-arrange(italian_adm_provinces,  province_name)
 # provinces_without_abbreviation<-italian_adm_provinces[is.na(italian_adm_provinces$province_abbreviation),] 
 ```
 
-## 6. Province case data
 
-
-### Initial preparation 
-
-```{r}
+```{r echo=FALSE, message=FALSE}
+## 6. Provinces case data
 provinces<-select(provinces_it, data, codice_provincia, totale_casi)
 provinces$dt<-as.Date(ymd_hms(provinces$data))
 provinces$data<-NULL 
@@ -93,71 +79,75 @@ intl_col_names2<-gsub("totale_casi","total_cases",intl_col_names)
 colnames(provinces)<-intl_col_names2
 ```
 
-### Today 
-
-```{r}
-prov_today<-provinces[provinces$dt==today,]
-prov_today$current_total<-prov_today$total_cases 
-prov_today$total_cases<-NULL 
+```{r echo=FALSE, message=FALSE}
+most_recent_dt<-max(provinces$dt)
+one_day_before<-most_recent_dt-1
+two_days_before<-most_recent_dt-2
+three_days_before<-most_recent_dt-3
 ```
 
-### Yesterday 
-
-```{r}
-prov_yesterday<-provinces[provinces$dt==yesterday,]
-prov_yesterday$dt<-NULL
-prov_yesterday$yesterday_total_cases<-prov_yesterday$total_cases 
-prov_yesterday$total_cases<-NULL
+```{r echo=FALSE, message=FALSE}
+prov_most_recent_dt<-provinces[provinces$dt==most_recent_dt,]
+prov_most_recent_dt$current_total<-prov_most_recent_dt$total_cases 
+prov_most_recent_dt$total_cases<-NULL 
 ```
 
+```{r echo=FALSE, message=FALSE}
+prov_1_day_before<-provinces[provinces$dt==one_day_before,]
+prov_1_day_before$dt<-NULL
+prov_1_day_before$yesterday_total_cases<-prov_1_day_before$total_cases 
+prov_1_day_before$total_cases<-NULL
+```
+
+
+```{r echo=FALSE, message=FALSE}
 ### Join
-```{r}
-prov<-inner_join(prov_yesterday, prov_today)
-prov$todays_rate<-prov$current_total/prov_yesterday$yesterday_total_cases
+prov<-inner_join(prov_1_day_before, prov_most_recent_dt)
+prov$todays_rate<-prov$current_total/prov_1_day_before$yesterday_total_cases
 ```
 
-### Two days ago
 
-```{r}
-prov_2_days_ago<-provinces[provinces$dt==two_days_ago,]
-prov_2_days_ago$dt<-NULL
-prov_2_days_ago$total_two_days_ago<-prov_2_days_ago$cases
-col_names<-colnames(prov_2_days_ago)
-revised_col_names<-gsub("total_cases","total_cases_two_days_ago",col_names)
-colnames(prov_2_days_ago)<-revised_col_names
+```{r echo=FALSE, message=FALSE}
+### Two days prior
+prov_2_days_before<-provinces[provinces$dt==two_days_before,]
+prov_2_days_before$dt<-NULL
+prov_2_days_before$total_two_days_before<-prov_2_days_before$cases
+col_names<-colnames(prov_2_days_before)
+revised_col_names<-gsub("total_cases","total_cases_two_days_before",col_names)
+colnames(prov_2_days_before)<-revised_col_names
 ```
 
-### Three days ago
-
-```{r}
-prov_3_days_ago<-provinces[provinces$dt==three_days_ago,]
-prov_3_days_ago$dt<-NULL
-prov_3_days_ago$total_two_days_ago<-prov_3_days_ago$cases
-col_names<-colnames(prov_3_days_ago)
-revised_col_names<-gsub("total_cases","total_cases_three_days_ago",col_names)
-colnames(prov_3_days_ago)<-revised_col_names
+```{r echo=FALSE, message=FALSE}
+### Three days prior
+prov_3_days_before<-provinces[provinces$dt==three_days_before,]
+prov_3_days_before$dt<-NULL
+prov_3_days_before$total_two_days_before<-prov_3_days_before$cases
+col_names<-colnames(prov_3_days_before)
+revised_col_names<-gsub("total_cases","total_cases_three_days_before",col_names)
+colnames(prov_3_days_before)<-revised_col_names
 ```
 
-```{r}
-provinces_calc<-inner_join(prov_today, prov_yesterday)
-provinces_calc<-inner_join(provinces_calc, prov_2_days_ago)
-provinces_calc<-inner_join(provinces_calc, prov_3_days_ago)
+```{r echo=FALSE, message=FALSE}
+provinces_calc<-inner_join(prov_most_recent_dt, prov_1_day_before)
+provinces_calc<-inner_join(provinces_calc, prov_2_days_before)
+provinces_calc<-inner_join(provinces_calc, prov_3_days_before)
 provinces_calc$current_rate<-provinces_calc$current_total/provinces_calc$yesterday_total_cases
-provinces_calc$yesterdays_rate<-provinces_calc$yesterday_total_cases/provinces_calc$total_cases_two_days_ago
-provinces_calc$rate_two_days_ago<-provinces_calc$total_cases_two_days_ago/provinces_calc$total_cases_three_days_ago
+provinces_calc$yesterdays_rate<-provinces_calc$yesterday_total_cases/provinces_calc$total_cases_two_days_before
+provinces_calc$rate_two_days_before<-provinces_calc$total_cases_two_days_before/provinces_calc$total_cases_three_days_before
 province_names<-select(italian_adm_provinces, province_code, province_name, province_abbreviation)
 provinces_calc<-inner_join(province_names, provinces_calc)
 rm(province_names)
 ```
 
-Cubic rate calculation 
-```{r}
-provinces_calc$cubic_rate<-(provinces_calc$current_total/provinces_calc$total_cases_three_days_ago)^(1/3)
+
+```{r echo=FALSE, message=FALSE}
+#Cubic rate calculation 
+provinces_calc$cubic_rate<-(provinces_calc$current_total/provinces_calc$total_cases_three_days_before)^(1/3)
 provinces_calc$trend<-round((provinces_calc$current_rate-provinces_calc$cubic_rate)*100, digits=1)
 ```
 
 
-```{r} 
+```{r echo=FALSE, message=FALSE} 
 write.csv(provinces_calc,"provinces_calc.csv")
 ```
 
@@ -165,24 +155,28 @@ write.csv(provinces_calc,"provinces_calc.csv")
 
 #### Provinces by Region 
 
-*To do: add province abbreviation labels* 
-
-
-```{r}
-# Individual graph example
-#specified_region<-"Emilia-Romagna"
-#chosen_color<-"yellow"
-#cubic_rate_plot(italian_adm_provinces, specified_region, chosen_color) 
-```
-
-```{r}
+```{r echo=FALSE, message=FALSE}
+require(ggplot2)
 
 for (i in 1:nrow(italian_adm_regions) ) {
 	
-  print(as.character(italian_adm_regions[i,]$region_name)) 
-  specified_region_name<-as.character(italian_adm_regions[i,]$region_name)
-  cubic_rate_plot(italian_adm_provinces, specified_region_name, "blue") 
-# cubic_rate_plot(italian_adm_provinces, specified_region_name, chosen_color) 
+    specified_region_name<-as.character(italian_adm_regions[i,]$region_name)
+
+    regional_code<-italian_adm_regions[italian_adm_regions$region_name==specified_region_name,]$region_code
+    
+    local_provinces<-italian_adm_provinces[italian_adm_provinces$region_code==regional_code,]
+  
+    local_province_data<-inner_join(provinces_calc, local_provinces)
+    local_province_data<-arrange(local_province_data, province_abbreviation)    
+
+    local_province_data$cubic_percent_rate<-(local_province_data$cubic_rate-1)*100
+    
+    print(ggplot(local_province_data, aes(y=cubic_percent_rate, x=province_abbreviation))+ geom_boxplot(color='blue')+ ggtitle(specified_region_name)+ xlab("Province abbreviation") + ylab("cubic % rate"))
+        
 }
 ```
 
+
+*To do: adjust import from original dataset, to place Trento and Bolzano provinces under the same administrative region.* 
+
+**Data last updated: 6/Apr/2020**

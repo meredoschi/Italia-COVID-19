@@ -1,4 +1,4 @@
-"","province_code","province_name","province_abbreviation","dt","current_total","yesterday_total_cases","total_cases_two_days_ago","total_cases_three_days_ago","current_rate","yesterdays_rate","rate_two_days_ago","cubic_rate","trend"
+"","province_code","province_name","province_abbreviation","dt","current_total","yesterday_total_cases","total_cases_two_days_before","total_cases_three_days_before","current_rate","yesterdays_rate","rate_two_days_before","cubic_rate","trend"
 "1",84,"Agrigento","AG",2020-04-06,109,107,102,100,1.01869158878505,1.04901960784314,1.02,1.02914246657151,-1
 "2",6,"Alessandria","AL",2020-04-06,1904,1763,1591,1491,1.07997731140102,1.10810810810811,1.06706908115359,1.08491679801565,-0.5
 "3",42,"Ancona","AN",2020-04-06,1401,1356,1290,1263,1.03318584070796,1.05116279069767,1.02137767220903,1.03516980355049,-0.2
