@@ -15,8 +15,7 @@ source("helper_functions.R")
 datasets_path<-file.path(getwd(),"..", "COVID-19") 
 ```
 
-
-*dpc-covid19-ita-province.csv*
+*Own calculations, based on dpc-covid19-ita-province.csv*
 ```{r echo=FALSE, message=FALSE}
 ## 2. Provincial data - CSV Import step
 provinces_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
