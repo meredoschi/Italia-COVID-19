@@ -178,4 +178,4 @@ for (i in 1:nrow(italian_adm_regions) ) {
 
 *To do: adjust import from original dataset, to place Trento and Bolzano provinces under the same administrative region.* 
 
-**Data last updated: 6/Apr/2020**
+**Data last updated: 7/Apr/2020**

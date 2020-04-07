@@ -84,7 +84,7 @@ plot(nat4$dt, nat4$deceased_per_positives_day_before_ratio*100, type='l', main='
 ```
 
 ```{r echo=FALSE, message=FALSE}
-plot(nat4$dt, nat4$discharged_healed_per_positives_day_before_ratio*100, type='l', main='Discharged or healed per positive cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="%",col="darkgreen")
+plot(nat4$dt, nat4$discharged_healed_per_positives_day_before_ratio*100, type='l', main='Discharged or healed per positive cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="times (proportion)",col="darkgreen")
 ```
 ```{r echo=FALSE, message=FALSE}
 plot(nat4$dt, nat4$discharged_or_healed_to_deceased_ratio, type='l', main='Daily proportion: discharged or healed compared to deceased',sub="Given the remaining positive cases on the day before",xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="Higher numbers are better (1 = equal, 2 = twice, etc)",col="orange")
@@ -121,4 +121,4 @@ initial_num_cases<-min(nat6$total_cases)
 national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
 ```
 
-**Last updated: 6/Apr/2020**
+**Data last updated: 7/Apr/2020**
