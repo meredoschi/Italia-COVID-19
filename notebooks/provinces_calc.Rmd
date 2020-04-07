@@ -42,7 +42,15 @@ intl_col_names2<-gsub("codice_regione","region_code",intl_col_names)
 colnames(italian_adm_regions)<-intl_col_names2 
 rm(intl_col_names)
 rm(intl_col_names2)
+
+# Fix
 italian_adm_regions<-arrange(italian_adm_regions, region_name)
+italian_adm_regions_csv<-italian_adm_regions 
+italian_adm_regions_to_fix<-italian_adm_regions[italian_adm_regions$region_code!=4,]
+trento_bolzano_region<-data.frame('Trentino - Alto Adige | Trentino - Südtirol',4)
+names(trento_bolzano_region)<-c("region_name","region_code")
+italian_adm_regions<-full_join(italian_adm_regions_to_fix, trento_bolzano_region)
+
 ```
 
 ```{r echo=FALSE, message=FALSE}
@@ -62,6 +70,11 @@ rm(intl_col_names3)
 rm(intl_col_names4)
 rm(intl_col_names5)
 italian_adm_provinces<-arrange(italian_adm_provinces,  province_name)
+
+# Fix
+italian_adm_provinces$region_name<-NULL
+italian_adm_provinces<-inner_join(italian_adm_provinces, italian_adm_regions)
+
 # should have zero observations, if Naples was imported correctly.
 # provinces_without_abbreviation<-italian_adm_provinces[is.na(italian_adm_provinces$province_abbreviation),] 
 ```
@@ -175,7 +188,5 @@ for (i in 1:nrow(italian_adm_regions) ) {
 }
 ```
 
-
-*To do: adjust import from original dataset, to place Trento and Bolzano provinces under the same administrative region.* 
 
 **Data last updated: 7/Apr/2020**
