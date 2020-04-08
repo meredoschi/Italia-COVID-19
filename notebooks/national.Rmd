@@ -121,4 +121,4 @@ initial_num_cases<-min(nat6$total_cases)
 national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
 ```
 
-**Data last updated: 7/Apr/2020**
+*Data last updated: 8/Apr/2020*

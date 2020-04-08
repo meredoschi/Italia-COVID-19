@@ -33,7 +33,7 @@ to_be_determined_or_updated<-"In fase di definizione/aggiornamento"
 provinces_it<-provinces_raw[provinces_raw$denominazione_provincia!=to_be_determined_or_updated,]
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ## 4. Italian administrative regions
 italian_adm_regions<-distinct(select(provinces_it, denominazione_regione, codice_regione))
 col_names<-colnames(italian_adm_regions)
@@ -163,11 +163,12 @@ provinces_calc$trend<-round((provinces_calc$current_rate-provinces_calc$cubic_ra
 write.csv(provinces_calc,"provinces_calc.csv")
 ```
 
-### Graph - Total case progression - subnational level (last three days - cubic rate)
+### Graph - Total case progression - subnational level (current vs. last three days rate)
 
 #### Provinces by Region 
 
 ```{r echo=FALSE, message=FALSE}
+provinces_calc$current_perc_rate<-(provinces_calc$current_rate-1)*100
 require(ggplot2)
 
 for (i in 1:nrow(italian_adm_regions) ) {
@@ -181,12 +182,16 @@ for (i in 1:nrow(italian_adm_regions) ) {
     local_province_data<-inner_join(provinces_calc, local_provinces)
     local_province_data<-arrange(local_province_data, province_abbreviation)    
 
-    local_province_data$cubic_percent_rate<-(local_province_data$cubic_rate-1)*100
+    local_province_data$cubic_perc_rate<-(local_province_data$cubic_rate-1)*100
     
-    print(ggplot(local_province_data, aes(y=cubic_percent_rate, x=province_abbreviation))+ geom_boxplot(color='blue')+ ggtitle(specified_region_name)+ xlab("Province abbreviation") + ylab("cubic % rate"))
-        
+       current_rate_chart<-ggplot(local_province_data, aes(y=cubic_perc_rate, x=province_abbreviation))+geom_col(color="red", fill='#3262cc')+geom_boxplot(aes(y=current_perc_rate, x=province_abbreviation),color="orange")+ggtitle(paste(specified_region_name,format(most_recent_dt,"%d %b %Y")))+ xlab("Province abbreviation")  + ylab(paste("Total cases % change (current daily vs. weighted 3 day rate)"))
+       
+       print(current_rate_chart)
+
+         
+            
 }
 ```
 
 
-**Data last updated: 7/Apr/2020**
+*Data last updated: 8/Apr/2020*
