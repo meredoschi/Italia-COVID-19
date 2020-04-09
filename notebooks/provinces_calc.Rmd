@@ -184,7 +184,10 @@ for (i in 1:nrow(italian_adm_regions) ) {
 
     local_province_data$cubic_perc_rate<-(local_province_data$cubic_rate-1)*100
     
-       current_rate_chart<-ggplot(local_province_data, aes(y=cubic_perc_rate, x=province_abbreviation))+geom_col(color="red", fill='#3262cc')+geom_boxplot(aes(y=current_perc_rate, x=province_abbreviation),color="orange")+ggtitle(paste(specified_region_name,format(most_recent_dt,"%d %b %Y")))+ xlab("Province abbreviation")  + ylab(paste("Total cases % change (current daily vs. weighted 3 day rate)"))
+    province_label_text<-element_text(face = "bold", color = "black", size = 11, angle=20)
+    chart_title<-paste(specified_region_name,'(',format(three_days_before,"%d %b"),"->",format(most_recent_dt,"%d %b %Y"),")")
+       current_rate_chart<-ggplot(local_province_data, aes(y=cubic_perc_rate, x=province_name))+geom_col(color="yellow", fill='#401030')+geom_boxplot(aes(y=current_perc_rate, x=province_name),color="cyan")+ggtitle(chart_title)+xlab("Province")  +theme(axis.text.x = province_label_text) +
+ ylab(paste("Total cases % change (current daily vs. weighted 3 day rate)"))
        
        print(current_rate_chart)
 
