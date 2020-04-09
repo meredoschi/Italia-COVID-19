@@ -9,6 +9,7 @@ library(readr)
 library(lubridate)
 library(dplyr)
 library(markdown)
+library(ggplot2)
 source("helper_functions.R")
 datasets_path<-file.path(getwd(),"..", "COVID-19") 
 ```
@@ -65,30 +66,66 @@ nat3$positives_remaining_delta<-nat3$positives_remaining-nat3$positives_remainin
 nat3$total_tests_cases_ratio_prev<-nat3$tests_prev/nat3$total_cases_previous
 nat3$tests_per_positive_on_dt_ratio<-nat3$tests_delta/nat3$positives_added_on_dt
 nat3$positives_remaining_percent_delta<-nat3$positives_remaining_delta/nat3$positives_remaining_previous*100
-nat3$deceased_per_positives_day_before_ratio<-nat3$deceased_delta/nat3$positives_remaining_previous
-nat3$discharged_healed_per_positives_day_before_ratio<-nat3$discharged_healed_delta/nat3$positives_remaining_previous
+nat3$deceased_per_positives_day_before_ratio<-nat3$deceased_delta/nat3$positives_remaining_previous*100
+nat3$discharged_healed_per_positives_day_before_ratio<-nat3$discharged_healed_delta/nat3$positives_remaining_previous*100
 ```
 
 
 ```{r echo=FALSE, message=FALSE}
-plot(nat3$dt,nat3$positives_remaining_delta,type='b', main="Additional active cases per day",xlab='Date',ylab="Net cases, excluding latest fatalities, discharged or healed", col="orange")
+
+
+    chart0_title<-paste('Remaining active cases (daily change)')
+    
+    chart0<-ggplot(nat3, aes(y=deceased_per_positives_day_before_ratio, x=dt))+geom_path(color="orange")+ggtitle(chart0_title)+xlab("Date")+
+ ylab("In thousands")
+    print(chart0)
+
 ```
 
 ```{r echo=FALSE, message=FALSE}
-nat4<-select(nat3, dt, deceased_per_positives_day_before_ratio, discharged_healed_per_positives_day_before_ratio)
+nat4<-select(nat3, dt, positives_remaining_previous, deceased_delta, discharged_healed_delta, deceased_per_positives_day_before_ratio, discharged_healed_per_positives_day_before_ratio)
 nat4$discharged_or_healed_to_deceased_ratio<-nat4$discharged_healed_per_positives_day_before_ratio/nat4$deceased_per_positives_day_before_ratio
 ```
 
 ```{r echo=FALSE, message=FALSE}
-plot(nat4$dt, nat4$deceased_per_positives_day_before_ratio*100, type='l', main='Fatalities per active cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="%",col="red")
+
 ```
 
 ```{r echo=FALSE, message=FALSE}
-plot(nat4$dt, nat4$discharged_healed_per_positives_day_before_ratio*100, type='l', main='Discharged or healed per positive cases on the previous day',xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="times (proportion)",col="darkgreen")
+
+    chart1_title<-paste('Fatalities per active cases on the previous day')
+    
+    chart1<-ggplot(nat4, aes(y=deceased_per_positives_day_before_ratio, x=dt))+geom_line(color="red")+ggtitle(chart1_title)+xlab(paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b %Y")))+
+ ylab("%")
+    print(chart1)
+    
+    chart2_title<-paste('Discharged or healed per positive cases on the previous day')
+    
+    chart2<-ggplot(nat4, aes(y=discharged_healed_per_positives_day_before_ratio, x=dt))+geom_line(color="green")+ggtitle(chart2_title)+xlab(paste("Most recent observation:",format(max(nat$dt),"%d %b %Y")))+
+ ylab("times (proportion)")
+    print(chart2)
 ```
+
+
 ```{r echo=FALSE, message=FALSE}
-plot(nat4$dt, nat4$discharged_or_healed_to_deceased_ratio, type='l', main='Daily proportion: discharged or healed compared to deceased',sub="Given the remaining positive cases on the day before",xlab=paste(format(min(nat$dt),"%d %b"),"-",format(max(nat$dt),"%d %b")),ylab="Higher numbers are better (1 = equal, 2 = twice, etc)",col="orange")
+
+    chart3_title<-paste('Total active cases on the day before per each healed or discharged "today"')
+    
+    chart3<-ggplot(nat4, aes(y=positives_remaining_previous/discharged_healed_delta, x=dt))+geom_line(color="purple")+ggtitle(chart3_title)+xlab(paste("Most recent observation:",format(max(nat$dt),"%d %b %Y")))+
+ ylab("Proportion (smaller numbers are better)")
+    print(chart3)
 ```
+
+
+```{r echo=FALSE, message=FALSE}
+      chart5_title<-paste('Discharged or healed per fatality proportion')
+    
+    chart5<-ggplot(nat4, aes(y=discharged_healed_delta/deceased_delta, x=dt))+geom_line(color="brown")+ggtitle(chart5_title)+xlab(paste("Most recent observation:",format(max(nat$dt),"%d %b %Y")))+
+ ylab("Higher figures are better")
+    print(chart5)
+```
+
+
 
 ```{r echo=FALSE, message=FALSE}
 #print(select(nat4, dt, discharged_or_healed_to_deceased_ratio))
@@ -120,5 +157,3 @@ for (i in 1:nrow(nat5) ) {
 initial_num_cases<-min(nat6$total_cases)
 national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
 ```
-
-*Data last updated: 8/Apr/2020*
