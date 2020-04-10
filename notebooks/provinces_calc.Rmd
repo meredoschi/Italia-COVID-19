@@ -197,4 +197,6 @@ for (i in 1:nrow(italian_adm_regions) ) {
 ```
 
 
-*Data last updated: 8/Apr/2020*
+```{r echo=FALSE, message=FALSE}
+print(paste("Data last updated: ",format(most_recent_dt,"%d %b %Y")))
+```
