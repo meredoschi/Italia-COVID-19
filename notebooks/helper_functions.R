@@ -1,35 +1,267 @@
+# Marcelo Eduardo Redoschi
+# helper functions - COVID 19 calculations
+# Last updated: 12 - 4 - 2020
 
-  today <- function(){ 
-    format(Sys.time(), "%Y-%m-%d")
+
+today <- function() {
+  format(Sys.time(), "%Y-%m-%d")
   
-  }
+}
 
-  days_before_today <- function(n) { 
-      
-    ymd(today())-n 
+days_before_today <- function(n) {
+  ymd(today()) - n
+  
+}
+
+retrieve_most_recent_dt<-function(df) { 
+  max(df$dt) 
+}
+
+yesterday <- function() {
+  days_before_today(1)
+}
+
+two_days_ago  <- function() {
+  days_before_today(2)
+}
+
+three_days_ago  <- function() {
+  days_before_today(3)
+}
+
+three_days_ago  <- function() {
+  days_before_today(3)
+}
+
+
+# n = number of inactive cases (generally at a later date).  Used in "backlog" computations.
+backlog_dt  <- function(df, n) {
+  temp <- df[df$positives_remaining >= n,]
+  min(temp$dt)
+}
+
+# df = dpc_provinces (from the Protezione Civile dataset)
+trentino_sudtirol_fix <- function(df, trentino_sudtirol_region_name) {
+  df$denominazione_regione <- as.character(df$denominazione_regione)
+  
+  trentino_sudtirol_province_rows <-
+    grep("Trento|Bolzano", df$denominazione_provincia)
+  
+  matching_rows <- df[(trentino_sudtirol_province_rows),]
+  
+  for (i in 1:nrow(matching_rows)) {
+    matching_province <- matching_rows[i,]
+    
+    df[df$codice_provincia == matching_province$codice_provincia,]$denominazione_regione <-
+      trentino_sudtirol_region_name
     
   }
   
-  yesterday <- function(){ 
-      days_before_today(1)
+  # Convert column back to factor, after fixing it
+  df$denominazione_regione <- as.factor(df$denominazione_regione)
+  
+  df
+}
+
+populate_total_case_on_dt_columns <- function(df) {
+
+recorded_dates<-as.character(uniq_dates(df)) # This cast is needed! 
+
+for (recorded_dt in recorded_dates) {
+
+  df_temp<-retrieve_total_cases_on_dt(df,recorded_dt)
+  df<-inner_join(df,df_temp)
+  } 
+  
+  df 
+
+}
+
+#  Filter out rows marked "In fase di definizione/aggiornamento"
+filter_extraneous_rows <- function(df) {
+  to_be_determined_or_updated <-
+    "In fase di definizione/aggiornamento"
+  df[df$denominazione_provincia != to_be_determined_or_updated,]
+  
+}
+
+# df = dataframe with information for one or more provinces with the corresponding region they belong to
+dpc_region_names <- function(df) {
+  region_names <- distinct(select(df, denominazione_regione))
+  ordered_region_names <-
+    arrange(region_names, denominazione_regione)
+  as.character(ordered_region_names$denominazione_regione)
+}
+
+dpc_province_names <- function(df) {
+  province_names <- distinct(select(df, denominazione_provincia))
+  ordered_province_names <-
+    arrange(province_names, denominazione_provincia)
+  as.character(ordered_province_names$denominazione_provincia)
+}
+
+consistent_region_names <- function(istat_df, dpc_df) {
+  # Default: factor
+  istat_df$region_name <- as.character(istat_df$region_name)
+  dpc_df$denominazione_regione <-
+    as.character(dpc_df$denominazione_regione)
+  
+  distinct(inner_join(
+    istat_df,
+    dpc_df,
+    by = c('region_name' = 'denominazione_regione')
+  ))$region_name
+}
+
+consistent_province_names <- function(istat_df, dpc_df) {
+  # Default: factor
+  istat_df$province_name <- as.character(istat_df$province_name)
+  dpc_df$denominazione_provincia <-
+    as.character(dpc_df$denominazione_provincia)
+  
+  distinct(inner_join(
+    istat_df,
+    dpc_df,
+    by = c('province_name' = 'denominazione_provincia')
+  ))$province_name
+}
+
+# istat_df = Istat regions, dpc_df = Provinces
+misspelled_region_names <- function(istat_df, dpc_df) {
+  setdiff(dpc_region_names(dpc_df),
+          consistent_region_names(istat_df, dpc_df))
+}
+
+# istat_df = Istat provinces, dpc_df = Provinces
+misspelled_province_names <- function(istat_df, dpc_df) {
+  setdiff(dpc_province_names(dpc_df),
+          consistent_province_names(istat_df, dpc_df))
+}
+
+fix_province_names <- function(istat_df, dpc_df) {
+  dpc_df$denominazione_provincia <-
+    as.character(dpc_df$denominazione_provincia)
+  
+  for (misspelled_province_name in misspelled_province_names(istat_df, dpc_df)) {
+    abbreviated_name <- substring(misspelled_province_name, 1, 5)
+    istat_province_indx <-
+      grep(abbreviated_name, istat_df$province_name)
+    istat_province_name <-
+      as.character(istat_df[istat_province_indx,]$province_name)
+    dpc_province_indices <-
+      grep(abbreviated_name, dpc_df$denominazione_provincia)
+    dpc_df[dpc_province_indices,]$denominazione_provincia <-
+      istat_province_name
   }
   
-  two_days_ago  <- function(){ 
-    days_before_today(2)
+  dpc_df$denominazione_provincia <-
+    as.factor(dpc_df$denominazione_provincia)
+  
+  dpc_df
+}
+
+fix_region_names <- function(istat_df, dpc_df) {
+  dpc_df$denominazione_regione <-
+    as.character(dpc_df$denominazione_regione)
+  
+  for (misspelled_region_name in misspelled_region_names(istat_df, dpc_provinces)) {
+    abbreviated_name <- substring(misspelled_region_name, 1, 5)
+    istat_region_indx <-
+      grep(abbreviated_name, istat_df$region_name)
+    istat_region_name <-
+      as.character(istat_df[istat_region_indx,]$region_name)
+    dpc_province_indices <-
+      grep(abbreviated_name, dpc_df$denominazione_regione)
+    dpc_df[dpc_province_indices,]$denominazione_regione <-
+      istat_region_name
   }
   
-  three_days_ago  <- function(){ 
-    days_before_today(3)
-  }
+  dpc_df$denominazione_regione <-
+    as.factor(dpc_df$denominazione_regione)
   
-  three_days_ago  <- function(){ 
-    days_before_today(3)
-  }
+  dpc_df
   
+}
+
+# df = dpc_province_data 
+
+# Column named 'data' (Italian word for 'date') contains date time information
+add_dt_column<-function(df) { 
   
-  # n = number of inactive cases (generally at a later date).  Used in "backlog" computations.  
-  backlog_dt  <- function(df, n){ 
-    temp<-df[df$positives_remaining>=n,]
-    min(temp$dt)
-  }
+  df$dt<-ymd(substring(df$data,1,10))
+  df
+}
+
+# Returns a dataframe - filters records by the specified date and relabels the dt column to "total_cases_y_m_d"
+retrieve_total_cases_on_dt<-function(df,specified_dt) {
+    print(as.character(specified_dt))
+    df_data_for_specified_dt<-df[df$dt==specified_dt,]
+    df_total_cases_for_dt<-select(df_data_for_specified_dt,denominazione_provincia,totale_casi)
+    col_names<-colnames(df_total_cases_for_dt)
+    total_cases_on_dt_txt<-paste("total_cases",as.character(specified_dt),sep="_")
+    revised_col_names<-gsub("totale_casi",total_cases_on_dt_txt,col_names)
+    colnames(df_total_cases_for_dt)<-revised_col_names
+    df_total_cases_for_dt
+}
+
+uniq_dates<-function(df) { 
   
+  sort(unique(df$dt))
+}
+
+# ---------- ISTAT DATA ----------
+
+process_population_csv<-function(population_csv_fname) { 
+  
+population<-read.csv(population_csv_fname,encoding="UTF-8",na.strings="undefined") 
+pop_all_genders<-population[population$Gender=='total',]
+pop_all_marital<-population[population$'Marital.status'=='total',]
+pop_marital_gen<-pop_all_marital[pop_all_marital$Gender=='total',]
+pop_mrt_gen_age<-pop_marital_gen[pop_marital_gen$ETA1=='TOTAL',]
+istat_population<-select(pop_mrt_gen_age, ITTER107, Territory, Value)
+col_names<-colnames(istat_population)
+intl_col_names<-gsub("ITTER107","territory_code",col_names)
+intl_col_names<-gsub("Territory","territory_name",intl_col_names)
+intl_col_names<-gsub("Value","population",intl_col_names)
+colnames(istat_population)<-intl_col_names
+istat_population
+} 
+
+# Italy
+retrieve_istat_country<-function(istat_df) {
+  istat_population[nchar(as.character(istat_df$territory_code))==2,]
+}
+
+# "Zones" - geographical areas in the country (Center, Islands, Northeast, Northwest, South)
+retrieve_istat_zones<-function(istat_df) {
+  istat_zones<-istat_population[nchar(as.character(istat_df$territory_code))==3,]
+  istat_zones_ordered_by_code<-arrange(istat_zones, territory_code)
+  istat_zones_ordered_by_code
+}
+
+# Regions (largest subnational unit, similar to a state or province in some countries)
+retrieve_istat_regions<-function(istat_df) { 
+istat_regions<-istat_df[nchar(as.character(istat_df$territory_code))==4,]
+istat_regions<-arrange(istat_regions, territory_name)
+# Filter autonomous provinces
+autonomous_provinces_indices<-grep("Provincia Autonoma",istat_regions$territory_name)
+istat_regions<-istat_regions[-autonomous_provinces_indices,]
+col_names<-colnames(istat_regions)
+intl_col_names<-gsub("territory_name","region_name",col_names)
+colnames(istat_regions)<-intl_col_names
+istat_regions 
+}
+
+
+# Italian provinces are at the sub-subnational level (i.e. belong to a Region)
+retrieve_istat_provinces<-function(istat_df) { 
+  istat_provinces<-istat_df[nchar(as.character(istat_df$territory_code))==5,]
+  col_names<-colnames(istat_provinces)
+  intl_col_names<-gsub("territory_name","province_name",col_names)
+  colnames(istat_provinces)<-intl_col_names
+  istat_provinces<-arrange(istat_provinces, province_name)
+  # Returns results sorted in alphabetical order by province name
+  istat_provinces
+}
+
+

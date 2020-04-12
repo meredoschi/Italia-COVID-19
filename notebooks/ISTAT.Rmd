@@ -1,0 +1,62 @@
+---
+title: "Italian provinces (version 2) with population data - (WORK IN PROGRESS)"
+author: "Marcelo Eduardo Redoschi"
+output: html_document
+---
+
+## 1. Initial setup (Libraries and paths)
+
+```{r message=FALSE}
+library(readr)
+library(lubridate)
+library(dplyr)
+library(markdown)
+library(ggplot2)
+source(file.path(getwd(),"helper_functions.R"))
+datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset") 
+```
+
+## 2. ISTAT (National Statistics Institute) regional and provincial classification
+```{r}
+ISTAT_path<-file.path(getwd(),"..", "ISTAT-CSV-Data") 
+istat_file_name<-file.path(ISTAT_path,"DCIS_POPRES1_11042020115451140.csv")
+istat_population<-process_population_csv(istat_file_name)
+istat_country<-retrieve_istat_country(istat_population)
+istat_zones<-retrieve_istat_zones(istat_population)
+istat_regions<-retrieve_istat_regions(istat_population)
+istat_provinces<-retrieve_istat_provinces(istat_population) 
+```
+
+## 3. Provincial data - CSV Import from local subdirectory
+
+```{r}
+provincial_data_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
+# na.string explicitly set to something else, since NA in this file means the Naples province abbreviation!
+dpc_provinces_raw<-read.csv(provincial_data_csv_fname,encoding="UTF-8", na.strings="undefined") 
+
+dpc_province_data<-filter_extraneous_rows(dpc_provinces_raw)
+```
+
+```{r}
+dpc_provinces<-distinct(select(dpc_province_data,"codice_regione","denominazione_regione","codice_provincia","denominazione_provincia","sigla_provincia","lat","long"))
+dpc_provinces<-trentino_sudtirol_fix(dpc_provinces,"Trentino Alto Adige / Südtirol")
+dpc_provinces<-fix_region_names(istat_regions, dpc_provinces)
+dpc_provinces<-fix_province_names(istat_provinces, dpc_provinces)
+dpc_provinces<-inner_join(dpc_provinces, istat_provinces,  by = c('denominazione_provincia'='province_name'))
+```
+### Include population data for each province (ISTAT figures for January 1, 2019)
+```{r}
+dpc_province_data<-inner_join(dpc_province_data, istat_provinces, by=c('denominazione_provincia'='province_name'))
+dpc_province_data<-add_dt_column(dpc_province_data)
+most_recent_dt<-retrieve_most_recent_dt(dpc_province_data)
+one_day_before<-most_recent_dt-1
+two_days_before<-most_recent_dt-2
+three_days_before<-most_recent_dt-3
+```
+
+### Add total case columns for the respective dates (generalized version) 
+```{r}
+dpc_province_data<-populate_total_case_on_dt_columns(dpc_province_data)
+```
+
+*Last updated: 12/4/2020*
