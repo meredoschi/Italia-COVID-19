@@ -32,25 +32,15 @@ In order to make it consistent with the ISTAT dataset this notebook will adjust 
 
 ### Protezione-Civile-Dataset
 
-#### Automated script (recommended, for convenience, if possible)
+The relevant directory was added as a git submodule, for convenience.
 
-a) Open a terminal and go to the folder where you've downloaded my repository, that is "Italia-COVID-19".
+To obtain the latest updates, just type the following commands on a terminal or git shell.
 
-a) Type: `cd scripts`
+`cd Protezione-Civile-Dataset`
 
-b) `bash protezione_civile_dataset.sh`
+`cd COVID-19`
 
-The script should automatically create or update your local copy of the Italian Civil Defense's COVID-19 dataset.  For convenience, it defaults to the appropriate directory for import, as set in the R notebooks.
-
-It assumes you have a suitable version of **git** installed and may need some tweaking (such as the expected file separator) depending on your operating system.  It should work on Linux and Mac environments.
-
-#### Alternate, manual procedure
-
-a) Create a new folder named **Protezione-Civile-Dataset**
-
-b) Download (zip or git clone) the information to it.
-
-c) Download a new zip or update the repository via **git pull**, from the appropriate subdirectory.
+`git pull`
 
 For questions or further information regarding the original dataset, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
 

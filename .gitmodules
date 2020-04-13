@@ -1,0 +1,3 @@
+[submodule "Protezione-Civile-Dataset/COVID-19"]
+	path = Protezione-Civile-Dataset/COVID-19
+	url = https://github.com/pcm-dpc/COVID-19
