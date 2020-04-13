@@ -30,19 +30,19 @@ In order to make it consistent with the ISTAT dataset this notebook will adjust 
   + DCIS_POPRES1_11042020115451140.zip
   + README.txt
 
-### Protezione-Civile-Dataset
+### Protezione-Civile-Dataset (local clone setup)
 
-The relevant directory was added as a git submodule, for convenience.
-
-To obtain the latest updates, just type the following commands on a terminal or git shell.
+The relevant directory was added as a git submodule, for convenience.  In order to download it via git, you may have to type the following commands on a terminal or shell.
 
 `cd Protezione-Civile-Dataset`
 
-`cd COVID-19`
+`git submodule init`
 
-`git pull`
+`git submodule fetch`
 
-For questions or further information regarding the original dataset, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
+`git submodule update`
+
+For questions or further information regarding the dataset itself, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
 
 *I am not affiliated with the Protezione Civile, I've merely downloaded their dataset, for use in my analysis.*
 
