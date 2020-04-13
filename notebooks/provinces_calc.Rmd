@@ -12,7 +12,7 @@ library(lubridate)
 library(dplyr)
 library(markdown)
 #source("helper_functions.R")
-datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset") 
+datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset","COVID-19") 
 ```
 
 *Own calculations, based on dpc-covid19-ita-province.csv*

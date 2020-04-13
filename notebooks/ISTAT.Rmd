@@ -13,7 +13,7 @@ library(dplyr)
 library(markdown)
 library(ggplot2)
 source(file.path(getwd(),"helper_functions.R"))
-datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset") 
+datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset","COVID-19") 
 ```
 
 ## 2. ISTAT (National Statistics Institute) regional and provincial classification

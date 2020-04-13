@@ -10,8 +10,8 @@ library(lubridate)
 library(dplyr)
 library(markdown)
 library(ggplot2)
-#source("helper_functions.R")
-#datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset") 
+source("helper_functions.R")
+datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset","COVID-19") 
 ```
 
 *Source: dpc-covid19-ita-andamento-nazionale.csv, own calculations*
