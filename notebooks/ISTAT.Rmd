@@ -1,12 +1,14 @@
 ---
-title: "Italian provinces (version 2) with population data - (WORK IN PROGRESS)"
+title: "Italian provinces"
 author: "Marcelo Eduardo Redoschi"
 output: html_document
 ---
 
-## 1. Initial setup (Libraries and paths)
+*Source: dpc-covid19-ita-province.csv, own calculations*
 
-```{r message=FALSE}
+
+```{r echo=FALSE, message=FALSE}
+# Initial setup (Libraries and paths)
 library(readr)
 library(lubridate)
 library(dplyr)
@@ -16,8 +18,9 @@ source(file.path(getwd(),"helper_functions.R"))
 datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset","COVID-19") 
 ```
 
-## 2. ISTAT (National Statistics Institute) regional and provincial classification
-```{r}
+
+```{r echo=FALSE, message=FALSE}
+# ISTAT (National Statistics Institute) regional and provincial classification
 ISTAT_path<-file.path(getwd(),"..", "ISTAT-CSV-Data") 
 istat_file_name<-file.path(ISTAT_path,"DCIS_POPRES1_11042020115451140.csv")
 istat_population<-process_population_csv(istat_file_name)
@@ -25,38 +28,117 @@ istat_country<-retrieve_istat_country(istat_population)
 istat_zones<-retrieve_istat_zones(istat_population)
 istat_regions<-retrieve_istat_regions(istat_population)
 istat_provinces<-retrieve_istat_provinces(istat_population) 
+istat_provinces$regional_territory_code<-substring(istat_provinces$territory_code,1,4)
+istat_provinces<-provinces_regional_territory_code_fix(istat_provinces)
 ```
 
-## 3. Provincial data - CSV Import from local subdirectory
+```{r echo=FALSE, message=FALSE}
+# Provincial data - CSV Import from local subdirectory
 
-```{r}
 provincial_data_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
 # na.string explicitly set to something else, since NA in this file means the Naples province abbreviation!
-dpc_provinces_raw<-read.csv(provincial_data_csv_fname,encoding="UTF-8", na.strings="undefined") 
+dpc_covid19_ita_provinces<-read.csv(provincial_data_csv_fname,encoding="UTF-8", na.strings="undefined") 
+provinces_data<-filter_extraneous_rows(dpc_covid19_ita_provinces)
+provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
+provinces_data<-fix_region_names(istat_regions, provinces_data)
+provinces_data<-fix_province_names(istat_provinces, provinces_data)
 
-dpc_province_data<-filter_extraneous_rows(dpc_provinces_raw)
 ```
 
-```{r}
-dpc_provinces<-distinct(select(dpc_province_data,"codice_regione","denominazione_regione","codice_provincia","denominazione_provincia","sigla_provincia","lat","long"))
-dpc_provinces<-trentino_sudtirol_fix(dpc_provinces,"Trentino Alto Adige / Südtirol")
-dpc_provinces<-fix_region_names(istat_regions, dpc_provinces)
-dpc_provinces<-fix_province_names(istat_provinces, dpc_provinces)
-dpc_provinces<-inner_join(dpc_provinces, istat_provinces,  by = c('denominazione_provincia'='province_name'))
-```
-### Include population data for each province (ISTAT figures for January 1, 2019)
-```{r}
-dpc_province_data<-inner_join(dpc_province_data, istat_provinces, by=c('denominazione_provincia'='province_name'))
-dpc_province_data<-add_dt_column(dpc_province_data)
-most_recent_dt<-retrieve_most_recent_dt(dpc_province_data)
-one_day_before<-most_recent_dt-1
-two_days_before<-most_recent_dt-2
-three_days_before<-most_recent_dt-3
+```{r echo=FALSE, message=FALSE}
+# To do: include population data for each province (ISTAT figures for January 1, 2019)
+provinces_data<-inner_join(provinces_data, istat_provinces, by=c('denominazione_provincia'='province_name'))
+provinces_data<-add_dt_column(provinces_data)
 ```
 
-### Add total case columns for the respective dates (generalized version) 
-```{r}
-dpc_province_data<-populate_total_case_on_dt_columns(dpc_province_data)
+
+```{r echo=FALSE, message=FALSE}
+# Adds total case columns for the respective dates (generalized version) 
+provinces_data<-populate_total_case_on_dt_columns(provinces_data)
 ```
 
-*Last updated: 12/4/2020*
+```{r echo=FALSE, message=FALSE}
+provinces_calculations<-provinces_data
+
+current_total_cases<-total_cases_on_dt(provinces_data, days_before(provinces_data,0))
+total_cases_1_day_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,1))
+total_cases_2_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,2))
+total_cases_3_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,3))
+total_cases_4_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,4))
+  
+provinces_calculations$current_rate<-current_total_cases/total_cases_1_day_before
+provinces_calculations$yesterdays_rate<-total_cases_1_day_before/total_cases_2_days_before
+provinces_calculations$rate_two_days_before<-total_cases_2_days_before/total_cases_3_days_before
+provinces_calculations$rate_three_days_before<-total_cases_3_days_before/total_cases_4_days_before
+
+provinces_calculations$cubic_rate<-(current_total_cases/total_cases_3_days_before)^(1/3)
+provinces_calculations$cubic_perc_rate<-(provinces_calculations$cubic_rate-1)*100
+provinces_calculations$current_perc_rate<-(provinces_calculations$current_rate-1)*100
+provinces_calculations$trend<-round((provinces_calculations$current_rate-provinces_calculations$cubic_rate)*100, digits=1)
+
+most_recent_dt<-retrieve_most_recent_dt(provinces_calculations)
+three_days_before<-most_recent_dt-3 
+provinces_latest<-provinces_calculations[provinces_calculations$dt==most_recent_dt,]
+
+# Increasing rate in total cases
+prov_increasing_trend<-provinces_latest[provinces_latest$trend>0,]
+prov_increasing_trend<-select(prov_increasing_trend, denominazione_provincia, totale_casi, current_perc_rate, trend)
+prov_increasing_trend<-arrange(prov_increasing_trend, -trend)
+```
+
+### Provinces with an augmenting rate of increase in the number of cases
+```{r echo=FALSE, message=FALSE} 
+print(prov_increasing_trend)
+```
+
+### Provinces with a steady or declining rate of increase 
+```{r echo=FALSE, message=FALSE} 
+prov_declining_trend<-provinces_latest[provinces_latest$trend<=0,]
+prov_declining_trend<-select(prov_declining_trend, denominazione_provincia, totale_casi, current_perc_rate, trend)
+prov_declining_trend<-arrange(prov_declining_trend, -trend)
+print(prov_declining_trend)
+```
+*Trend is an approximation = (current_rate-cubic_rate)x100*
+
+```{r echo=FALSE, message=FALSE} 
+write.csv(provinces_calculations,"provinces_calculations.csv")
+write.csv(provinces_latest,"provinces_latest.csv")
+write.csv(prov_increasing_trend,"provinces_increasing_trend.csv")
+```
+
+### Graphs - Total case progression - Provinces by region 
+
+```{r echo=FALSE, message=FALSE}
+require(ggplot2)
+
+for (i in 1:nrow(istat_regions) ) {
+    
+    territory_code_for_the_region<-as.character(istat_regions[i,]$territory_code)
+    specified_region_name<-as.character(istat_regions[i,]$region_name)
+
+    local_provinces<-istat_provinces[istat_provinces$regional_territory_code==territory_code_for_the_region,]
+
+    local_province_data<-inner_join(provinces_calculations, local_provinces)
+    local_province_data<-arrange(local_province_data, denominazione_provincia)    
+
+   
+    
+     province_label_text<-element_text(face = "bold", color = "black", size = 11, angle=20) 
+     
+     cubic_chart_title<-paste(specified_region_name,format(three_days_before,"%d %b"),"-",format(most_recent_dt,"%d %b %Y"))
+     
+        cubic_rate_chart<-ggplot(local_province_data)+geom_boxplot(aes(y=cubic_perc_rate, x=denominazione_provincia),color="#3565FA",linetype = "dashed")+geom_boxplot(aes(y=current_perc_rate, x=denominazione_provincia),color="#851AB9")+ggtitle(cubic_chart_title)+xlab("Province")+ylab("current vs. 3 day (shown dashed) % rate")+theme(axis.text.x = province_label_text)    
+        
+        print(cubic_rate_chart)
+        rm(local_provinces)
+        rm(local_province_data)
+         
+}            
+```
+
+
+```{r echo=FALSE, message=FALSE}
+print(paste("Most recent observation date in the dataset: ",format(most_recent_dt,"%d %b %Y")))
+```
+
+*This notebook last updated: 14/4/2020*

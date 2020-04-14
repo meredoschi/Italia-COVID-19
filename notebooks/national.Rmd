@@ -71,9 +71,15 @@ nat3$discharged_healed_per_positives_day_before_ratio<-nat3$discharged_healed_de
 ```
 
 ```{r echo=FALSE}
-      nat_fatalities<-select(national,total_deceased, total_cases, positives_added_on_dt, dt)
+      nat_fatalities<-select(nat3,total_deceased, total_cases, positives_added_on_dt, dt, positives_remaining_delta)
       nat_fatalities$rate<-nat_fatalities$total_deceased/nat_fatalities$total_cases*100
-    nat_fatalities<-select(nat_fatalities,total_deceased, total_cases, rate, dt, positives_added_on_dt)
+    nat_fatalities<-select(nat_fatalities,total_deceased, total_cases, rate, dt, positives_added_on_dt, positives_remaining_delta)
+    col_names<-colnames(nat_fatalities)
+    intl_col_names<-gsub("positives_added_on_dt","cases_added",col_names)
+    intl_col_names<-gsub("positives_remaining_delta","net_effect",intl_col_names)
+    intl_col_names<-gsub("rate","fatality_rate",intl_col_names)
+    colnames(nat_fatalities)<-intl_col_names
+    
 ```
 
 ```{r fig.height=5, fig.width=10, echo=FALSE}

@@ -63,6 +63,26 @@ trentino_sudtirol_fix <- function(df, trentino_sudtirol_region_name) {
   df
 }
 
+# df = provinces
+provinces_regional_territory_code_fix <- function(df) {
+  df$regional_territory_code <- as.character(df$regional_territory_code)
+ 
+  trentino_sudtirol_territory_code<-'ITDA'
+  
+  trento_or_bolzano_indices <-
+    grep("Trento|Bolzano", df$province_name)
+  
+  
+  for (indx in trento_or_bolzano_indices) { 
+    df[indx,]$regional_territory_code<-trentino_sudtirol_territory_code
+    
+  } 
+  
+  df 
+  
+  
+}
+
 populate_total_case_on_dt_columns <- function(df) {
 
 recorded_dates<-as.character(uniq_dates(df)) # This cast is needed! 
@@ -164,7 +184,7 @@ fix_region_names <- function(istat_df, dpc_df) {
   dpc_df$denominazione_regione <-
     as.character(dpc_df$denominazione_regione)
   
-  for (misspelled_region_name in misspelled_region_names(istat_df, dpc_provinces)) {
+  for (misspelled_region_name in misspelled_region_names(istat_df, dpc_df)) {
     abbreviated_name <- substring(misspelled_region_name, 1, 5)
     istat_region_indx <-
       grep(abbreviated_name, istat_df$region_name)
@@ -194,7 +214,7 @@ add_dt_column<-function(df) {
 
 # Returns a dataframe - filters records by the specified date and relabels the dt column to "total_cases_y_m_d"
 retrieve_total_cases_on_dt<-function(df,specified_dt) {
-    print(as.character(specified_dt))
+   # print(as.character(specified_dt))
     df_data_for_specified_dt<-df[df$dt==specified_dt,]
     df_total_cases_for_dt<-select(df_data_for_specified_dt,denominazione_provincia,totale_casi)
     col_names<-colnames(df_total_cases_for_dt)
@@ -207,6 +227,27 @@ retrieve_total_cases_on_dt<-function(df,specified_dt) {
 uniq_dates<-function(df) { 
   
   sort(unique(df$dt))
+}
+
+# ---------- Provinces calculation ----------
+
+# General formulation
+
+# Before the latest, most recent recorded observation that is.
+days_before<-function(df,n) { 
+  most_recent_dt<-max(df$dt)
+  most_recent_dt-n
+}
+
+total_cases_on_dt<-function(df, specified_dt) { 
+  
+  df[df$dt==specified_dt,]$totale_casi
+  
+}
+
+# Specific for the latest (most recent) observation
+total_cases_latest<-function(df) {
+  total_cases_on_dt(df, retrieve_most_recent_dt(df))
 }
 
 # ---------- ISTAT DATA ----------
