@@ -13,12 +13,17 @@ For questions or further information regarding their project or repository, kind
 2. Install the RStudio software (if needed)
 3. Install git (if needed)
 3. Type on a git shell or appropriate command line: `git clone https://github.com/meredoschi/Italia-COVID-19 --recursive`
-4. Rename the **ISTAT-CSV-Data-zip** folder to **ISTAT-CSV-Data**
+4. Copy or rename the **ISTAT-CSV-Data-zip** folder to **ISTAT-CSV-Data**
 5. Unzip the **DCIS_POPRES1_11042020115451140.zip** file.
 
 Double check steps 4 and 5 if you get a message similar to the one below, whenever you try to run the *provinces* notebook.
 
 *cannot open file '...Italia-COVID-19/notebooks/../ISTAT-CSV-Data/DCIS_POPRES1_11042020115451140.csv': No such file or directoryError in file(file, "rt") : cannot open the connection*
+
+*Optional:*
+
+`cd Protezione-Civile-Dataset`
+`git submodule update --remote`
 
 ## In the notebooks folder you'll find:
 
