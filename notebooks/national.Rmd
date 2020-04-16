@@ -1,5 +1,5 @@
 ---
-title: "National situation - Charts"
+title: "Calculations and charts - Italy - COVID-19 Epidemic"
 author: "Marcelo Eduardo Redoschi"
 output: html_document
 ---
@@ -12,8 +12,10 @@ library(markdown)
 library(ggplot2)
 source("helper_functions.R")
 datasets_path<-file.path(getwd(),"..", "Protezione-Civile-Dataset","COVID-19") 
+csv_exports_dir<-file.path(getwd(),"..", "csv_exports") 
 ```
 
+#### Based on the Protezione Civile Dataset
 *Source: dpc-covid19-ita-andamento-nazionale.csv, own calculations*
 
 ```{r echo=FALSE, message=FALSE}
@@ -184,4 +186,9 @@ for (i in 1:nrow(nat5) ) {
 initial_num_cases<-min(nat6$total_cases)
 national_case_backlog<-nat6[nat6$inactive_discharged_healed_deceased>=initial_num_cases,]
 ```
+
+```{r echo=FALSE, message=FALSE}
+write.csv(nat3,file.path(csv_exports_dir,"nat3.csv"))
+```
+*This page last updated: 16/4/2020*
 

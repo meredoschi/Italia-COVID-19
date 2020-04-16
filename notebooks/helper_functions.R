@@ -305,4 +305,14 @@ retrieve_istat_provinces<-function(istat_df) {
   istat_provinces
 }
 
+# ----- Charts -----
 
+# df = provinces_calculations 
+plot_cubic_rate_chart<-function(df,selected_region) { 
+local_province_data<-df[df$denominazione_regione==selected_region,]
+local_province_data<-arrange(local_province_data, denominazione_provincia)
+province_label_text<-element_text(face = "bold", color = "black", size = 11, angle=20) 
+cubic_chart_title<-paste(selected_region,format(three_days_before,"%d %b"),"-",format(most_recent_dt,"%d %b %Y"))
+cubic_rate_chart<-ggplot(local_province_data)+geom_boxplot(aes(y=cubic_perc_rate, x=denominazione_provincia),color="#EB9B5E",linetype = "dashed")+geom_boxplot(aes(y=current_perc_rate, x=denominazione_provincia),color="#2C9FD4")+ggtitle(cubic_chart_title)+xlab("Province")+ylab("current vs. 3 day (shown dashed) % rate")+theme(axis.text.x = province_label_text)  
+cubic_rate_chart
+} 
