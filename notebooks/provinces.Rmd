@@ -61,7 +61,7 @@ provinces_data<-add_dt_column(provinces_data)
 
 ```{r echo=FALSE, message=FALSE}
 # Adds total case columns for the respective dates (generalized version) 
-provinces_data<-populate_total_case_on_dt_columns(provinces_data)
+provinces_data<-expand_dt_columns(provinces_data, "denominazione_provincia", "totale_casi") 
 ```
 
 ```{r echo=FALSE, message=FALSE}

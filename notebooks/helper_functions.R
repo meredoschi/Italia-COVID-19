@@ -1,6 +1,6 @@
 # Marcelo Eduardo Redoschi
 # helper functions - COVID 19 calculations
-# Last updated: 12 - 4 - 2020
+# Last updated: 16 - 4 - 2020
 
 
 today <- function() {
@@ -83,18 +83,19 @@ provinces_regional_territory_code_fix <- function(df) {
   
 }
 
-populate_total_case_on_dt_columns <- function(df) {
-
-recorded_dates<-as.character(uniq_dates(df)) # This cast is needed! 
-
-for (recorded_dt in recorded_dates) {
-
-  df_temp<-retrieve_total_cases_on_dt(df,recorded_dt)
-  df<-inner_join(df,df_temp)
+expand_dt_columns <- function(df, nation_or_province_column_name, attrib_column_name) {
+  
+  recorded_dates<-as.character(uniq_dates(df)) # This cast is needed! 
+  
+  for (recorded_dt in recorded_dates) {
+    
+    df_temp<-retrieve_attrib_value_on_dt(df,recorded_dt, nation_or_province_column_name, attrib_column_name) 
+      
+        df<-inner_join(df,df_temp)
   } 
   
   df 
-
+  
 }
 
 #  Filter out rows marked "In fase di definizione/aggiornamento"
@@ -212,16 +213,20 @@ add_dt_column<-function(df) {
   df
 }
 
-# Returns a dataframe - filters records by the specified date and relabels the dt column to "total_cases_y_m_d"
-retrieve_total_cases_on_dt<-function(df,specified_dt) {
-   # print(as.character(specified_dt))
-    df_data_for_specified_dt<-df[df$dt==specified_dt,]
-    df_total_cases_for_dt<-select(df_data_for_specified_dt,denominazione_provincia,totale_casi)
-    col_names<-colnames(df_total_cases_for_dt)
-    total_cases_on_dt_txt<-paste("total_cases",as.character(specified_dt),sep="_")
-    revised_col_names<-gsub("totale_casi",total_cases_on_dt_txt,col_names)
-    colnames(df_total_cases_for_dt)<-revised_col_names
-    df_total_cases_for_dt
+# Returns a dataframe - filters records by the specified date and relabels the dt column to "attribute_y_m_d"
+# scope = nation (for national), nome_provincia (for provinces)
+retrieve_attrib_value_on_dt<-function(df,specified_dt, nation_or_province_column_name, attrib_column_name) {
+  
+  
+  attrib_on_dt_txt<-paste(attrib_column_name,as.character(specified_dt),sep="_")
+  
+  df_data_for_specified_dt<-df[df$dt==specified_dt,]
+  
+  df_attrib_for_dt<-select(df_data_for_specified_dt,all_of(nation_or_province_column_name), attrib_column_name)
+  col_names<-colnames(df_attrib_for_dt)
+  revised_col_names<-gsub(attrib_column_name,attrib_on_dt_txt,col_names)
+  colnames(df_attrib_for_dt)<-revised_col_names
+  df_attrib_for_dt
 }
 
 uniq_dates<-function(df) { 
@@ -315,4 +320,29 @@ province_label_text<-element_text(face = "bold", color = "black", size = 11, ang
 cubic_chart_title<-paste(selected_region,format(three_days_before,"%d %b"),"-",format(most_recent_dt,"%d %b %Y"))
 cubic_rate_chart<-ggplot(local_province_data)+geom_boxplot(aes(y=cubic_perc_rate, x=denominazione_provincia),color="#EB9B5E",linetype = "dashed")+geom_boxplot(aes(y=current_perc_rate, x=denominazione_provincia),color="#2C9FD4")+ggtitle(cubic_chart_title)+xlab("Province")+ylab("current vs. 3 day (shown dashed) % rate")+theme(axis.text.x = province_label_text)  
 cubic_rate_chart
+} 
+
+# ----- Column translations -----
+
+# National
+translated_column_names<-function(df) { 
+
+col_names<-colnames(df)
+intl_col_names<-gsub("ricoverati_con_sintomi","hospitalized_with_symptoms",col_names)
+intl_col_names<-gsub("terapia_intensiva","intensive_care",intl_col_names)
+intl_col_names<-gsub("totale_ospedalizzati","hospitalized_total",intl_col_names)
+intl_col_names<-gsub("isolamento_domiciliare","home_isolation",intl_col_names)
+intl_col_names<-gsub("variazione_totale_positivi","num_positives_variation",intl_col_names)
+intl_col_names<-gsub("totale_positivi","positives_remaining",intl_col_names)
+intl_col_names<-gsub("nuovi_positivi","positives_added_on_dt",intl_col_names)
+intl_col_names<-gsub("dimessi_guariti","total_discharged_healed",intl_col_names)
+intl_col_names<-gsub("deceduti","total_deceased",intl_col_names)
+intl_col_names<-gsub("totale_casi","total_cases",intl_col_names)
+intl_col_names<-gsub("tamponi","tests",intl_col_names)
+intl_col_names<-gsub("note_","notes_",intl_col_names)
+intl_col_names<-gsub("stato","nation",intl_col_names)
+colnames(df)<-intl_col_names
+df 
+
+
 } 
