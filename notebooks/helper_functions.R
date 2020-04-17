@@ -255,6 +255,20 @@ total_cases_latest<-function(df) {
   total_cases_on_dt(df, retrieve_most_recent_dt(df))
 }
 
+filtered_by_region<-function(df, region_name) {
+  df[df$denominazione_regione==region_name,]
+    
+}
+
+filtered_for_the_most_recent_days<-function(df, n) {
+  most_recent_dt<-max(df$dt)
+  some_days_before<-most_recent_dt-n
+
+    df[df$dt>some_days_before,]
+  
+}
+
+
 # ---------- ISTAT DATA ----------
 
 process_population_csv<-function(population_csv_fname) { 
@@ -345,4 +359,13 @@ colnames(df)<-intl_col_names
 df 
 
 
+} 
+
+translated_province_column_names<-function(df) { 
+  
+  col_names<-colnames(df)
+  intl_col_names<-gsub("totale_casi","total_cases",col_names)
+  intl_col_names<-gsub("denominazione_provincia","province",intl_col_names)
+  colnames(df)<-intl_col_names
+  df 
 } 

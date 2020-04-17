@@ -119,12 +119,32 @@ write.csv(provinces_regions_key,file.path(csv_exports_dir,"provinces_regions_key
 ```{r echo=FALSE, message=FALSE}
  require(ggplot2)
 
-  for (i in 1:nrow(italian_regions) ) {
-    selected_region<-italian_regions[i,]
-    print(plot_cubic_rate_chart(provinces_calculations, selected_region))
+    specified_cols<-c("dt","denominazione_provincia","denominazione_regione","totale_casi","current_perc_rate","cubic_perc_rate","trend")
     
-  }
-            
+
+      
+    prov_calc_sel<-select(provinces_calculations, all_of(specified_cols))
+
+  prov_calc_sel<-filtered_for_the_most_recent_days(prov_calc_sel,1)
+
+  prov_calc_sel<-translated_province_column_names(prov_calc_sel)
+    for (i in 1:nrow(italian_regions) ) {
+   selected_region<-italian_regions[i,]
+    print(plot_cubic_rate_chart(provinces_calculations, selected_region))
+    local_provinces<-filtered_by_region(prov_calc_sel, selected_region)
+   
+    local_provinces$denominazione_regione<-NULL 
+    local_provinces$percent_rate<-round(local_provinces$current_perc_rate, digits=2)
+    local_provinces$three_day_rate<-round(local_provinces$cubic_perc_rate, digits=2)
+    local_provinces$current_perc_rate<-NULL
+    local_provinces$cubic_perc_rate<-NULL
+    
+    print(local_provinces, row.names = F)  
+    
+ }
+
+  rm(local_provinces)    
+          
 ```
 
 *This page last updated: 16/4/2020*
