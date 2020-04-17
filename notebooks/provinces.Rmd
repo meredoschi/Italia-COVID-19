@@ -43,7 +43,6 @@ dpc_covid19_ita_provinces<-read.csv(provincial_data_csv_fname,encoding="UTF-8", 
 provinces_data<-filter_extraneous_rows(dpc_covid19_ita_provinces)
 provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
 provinces_data<-fix_region_names(istat_regions, provinces_data)
-provinces_data<-fix_province_names(istat_provinces, provinces_data)
 
 provinces_regions_key<-inner_join(istat_provinces, provinces_data,by=c('province_name'='denominazione_provincia'))
 
