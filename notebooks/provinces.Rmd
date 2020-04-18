@@ -81,6 +81,7 @@ provinces_calculations$cubic_rate<-(current_total_cases/total_cases_3_days_befor
 provinces_calculations$cubic_perc_rate<-(provinces_calculations$cubic_rate-1)*100
 provinces_calculations$current_perc_rate<-(provinces_calculations$current_rate-1)*100
 provinces_calculations$trend<-round((provinces_calculations$current_rate-provinces_calculations$cubic_rate)*100, digits=1)
+provinces_calculations$per_capita<-provinces_calculations$totale_casi/provinces_calculations$population*100000
 
 most_recent_dt<-retrieve_most_recent_dt(provinces_calculations)
 three_days_before<-most_recent_dt-3 
@@ -88,7 +89,7 @@ provinces_latest<-provinces_calculations[provinces_calculations$dt==most_recent_
 
 # Increasing rate in total cases
 prov_increasing_trend<-provinces_latest[provinces_latest$trend>0,]
-prov_increasing_trend<-select(prov_increasing_trend, denominazione_provincia, totale_casi, current_perc_rate, trend)
+prov_increasing_trend<-select(prov_increasing_trend, denominazione_provincia, totale_casi, current_perc_rate, trend,per_capita)
 prov_increasing_trend<-arrange(prov_increasing_trend, -trend)
 ```
 
@@ -100,11 +101,22 @@ print(prov_increasing_trend)
 ### Provinces with a steady or declining rate of increase 
 ```{r echo=FALSE, message=FALSE} 
 prov_declining_trend<-provinces_latest[provinces_latest$trend<=0,]
-prov_declining_trend<-select(prov_declining_trend, denominazione_provincia, totale_casi, current_perc_rate, trend)
+prov_declining_trend<-select(prov_declining_trend, denominazione_provincia, totale_casi, current_perc_rate, trend, per_capita)
 prov_declining_trend<-arrange(prov_declining_trend, -trend)
 print(prov_declining_trend)
 ```
 *Trend is an approximation = (current_rate-cubic_rate)x100*
+*Per capita = total cases per 100000 (one hundred thousand) people*
+
+```{r echo=FALSE, message=FALSE} 
+provinces_per_capita<-select(provinces_calculations, dt, denominazione_provincia, denominazione_regione, totale_casi, per_capita)
+most_recent_dt<-max(provinces_per_capita$dt)
+provinces_per_capita<-arrange(provinces_per_capita,-per_capita) 
+print(most_recent_dt)
+provinces_per_capita_latest<-provinces_per_capita[provinces_per_capita$dt==most_recent_dt,]
+print(select(provinces_per_capita_latest,denominazione_provincia, denominazione_regione, per_capita, totale_casi),row.names = F)
+print(summary(provinces_per_capita_latest$per_capita))
+```
 
 ```{r echo=FALSE, message=FALSE} 
 write.csv(provinces_calculations,file.path(csv_exports_dir,"provinces_calculations.csv"))
@@ -112,6 +124,8 @@ write.csv(provinces_latest,file.path(csv_exports_dir,"provinces_latest.csv"))
 write.csv(prov_increasing_trend,file.path(csv_exports_dir,"provinces_increasing_trend.csv"))
 write.csv(prov_declining_trend,file.path(csv_exports_dir,"provinces_declining_trend.csv"))
 write.csv(provinces_regions_key,file.path(csv_exports_dir,"provinces_regions_key.csv"))
+write.csv(provinces_per_capita,file.path(csv_exports_dir,"provinces_per_capita.csv"))
+write.csv(provinces_per_capita_latest,file.path(csv_exports_dir,"provinces_per_capita_latest.csv"))
 ```
 
 ### Graphs - Total case progression - Provinces by region 
@@ -119,7 +133,7 @@ write.csv(provinces_regions_key,file.path(csv_exports_dir,"provinces_regions_key
 ```{r echo=FALSE, message=FALSE}
  require(ggplot2)
 
-    specified_cols<-c("dt","denominazione_provincia","denominazione_regione","totale_casi","current_perc_rate","cubic_perc_rate","trend")
+    specified_cols<-c("dt","denominazione_provincia","denominazione_regione","totale_casi","current_perc_rate","cubic_perc_rate","per_capita")
     
 
       
@@ -139,6 +153,9 @@ write.csv(provinces_regions_key,file.path(csv_exports_dir,"provinces_regions_key
     local_provinces$current_perc_rate<-NULL
     local_provinces$cubic_perc_rate<-NULL
     
+    observation_dt<-mean(local_provinces$dt)
+    print(observation_dt, row.names = F)
+    local_provinces$dt<-NULL
     print(local_provinces, row.names = F)  
     
  }

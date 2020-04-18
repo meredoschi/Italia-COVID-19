@@ -98,6 +98,29 @@ expand_dt_columns <- function(df, nation_or_province_column_name, attrib_column_
   
 }
 
+append_dt_to_col_name<-function(attrib,specified_dt) {
+  
+  paste(attrib,as.character(specified_dt),sep="_")
+  
+} 
+
+# df = dataframe with "expanded" date columns an attribute (attrib), start and finish dates
+# e.g. total_cases, start_dt="2020-4-1", finish_dt="2020-4-2" 
+calculate_delta<-function(df, attrib, start_dt, finish_dt) { 
+  start_date<-ymd(start_dt)
+  finish_date<-ymd(finish_dt)  
+  start_dt_column_name<-append_dt_to_col_name(attrib, start_date)
+  finish_dt_column_name<-append_dt_to_col_name(attrib, finish_date)
+  
+  #  num_days<-finish_date-start_date
+  #  print(num_days)
+  expanded_columns<-select(df,all_of(start_dt_column_name), all_of(finish_dt_column_name))
+  start_dt_value<-expanded_columns[1,1] # First row, first column   
+  finish_dt_value<-expanded_columns[1,2] # First row, second column with all equal values, by definition, so we just pick the first one.   
+  finish_dt_value-start_dt_value
+  
+  
+}
 #  Filter out rows marked "In fase di definizione/aggiornamento"
 filter_extraneous_rows <- function(df) {
   to_be_determined_or_updated <-
@@ -348,7 +371,7 @@ intl_col_names<-gsub("totale_ospedalizzati","hospitalized_total",intl_col_names)
 intl_col_names<-gsub("isolamento_domiciliare","home_isolation",intl_col_names)
 intl_col_names<-gsub("variazione_totale_positivi","num_positives_variation",intl_col_names)
 intl_col_names<-gsub("totale_positivi","positives_remaining",intl_col_names)
-intl_col_names<-gsub("nuovi_positivi","positives_added_on_dt",intl_col_names)
+intl_col_names<-gsub("nuovi_positivi","new_positives",intl_col_names)
 intl_col_names<-gsub("dimessi_guariti","total_discharged_healed",intl_col_names)
 intl_col_names<-gsub("deceduti","total_deceased",intl_col_names)
 intl_col_names<-gsub("totale_casi","total_cases",intl_col_names)
