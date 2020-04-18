@@ -27,9 +27,7 @@ national_csv_fname <-
   "dpc-covid19-ita-andamento-nazionale.csv"
   )
   dpc_covid19_ita_national <-
-  read.csv(national_csv_fname,
-  encoding = "UTF-8",
-  na.strings = "undefined")
+  import_csv(national_csv_fname)
   national <- dpc_covid19_ita_national
 ```
 

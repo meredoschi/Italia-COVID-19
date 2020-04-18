@@ -1,6 +1,11 @@
 # Marcelo Eduardo Redoschi
 # helper functions - COVID 19 calculations
-# Last updated: 16 - 4 - 2020
+# Last updated: 18 - 4 - 2020
+
+import_csv<-function(fname) { 
+  # na.string explicitly set since NA is by coincidence, the Naples province abbreviation!
+  read.csv(fname,encoding="UTF-8", na.strings="undefined")   
+}
 
 
 today <- function() {

@@ -24,27 +24,59 @@ csv_exports_dir<-file.path(getwd(),"..", "csv_exports")
 ```{r echo=FALSE, message=FALSE}
 # ISTAT (National Statistics Institute) regional and provincial classification
 ISTAT_path<-file.path(getwd(),"..", "ISTAT-CSV-Data") 
-istat_file_name<-file.path(ISTAT_path,"DCIS_POPRES1_11042020115451140.csv")
-istat_population<-process_population_csv(istat_file_name)
+istat_pop_file_name<-file.path(ISTAT_path,"DCIS_POPRES1_11042020115451140.csv")
+istat_area_file_name<-file.path(ISTAT_path,"DCCV_CARGEOMOR_ST_COM_12042020123304098.csv")
+
+istat_population<-process_population_csv(istat_pop_file_name)
 istat_country<-retrieve_istat_country(istat_population)
 istat_zones<-retrieve_istat_zones(istat_population)
 istat_regions<-retrieve_istat_regions(istat_population)
 istat_provinces<-retrieve_istat_provinces(istat_population) 
 istat_provinces$regional_territory_code<-substring(istat_provinces$territory_code,1,4)
 istat_provinces<-provinces_regional_territory_code_fix(istat_provinces)
+
+istat_area<-import_csv(istat_area_file_name)
+istat_area<-istat_area[istat_area$`Data.type`=="total area (km2)",]
+#istat_area<-select(istat_area, ITTER107, Territory, Value)
+istat_area<-select(istat_area, Territory, Value)
+col_names<-colnames(istat_area)
+#col_names<-gsub("ITTER107","territory_code",col_names)
+col_names<-gsub("Territory","territory_name",col_names)
+col_names<-gsub("Value","km2",col_names)
+colnames(istat_area)<-col_names
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Provincial data - CSV Import from local subdirectory
 
 provincial_data_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
-# na.string explicitly set to something else, since NA in this file means the Naples province abbreviation!
-dpc_covid19_ita_provinces<-read.csv(provincial_data_csv_fname,encoding="UTF-8", na.strings="undefined") 
+dpc_covid19_ita_provinces<-import_csv(provincial_data_csv_fname)
+
 provinces_data<-filter_extraneous_rows(dpc_covid19_ita_provinces)
 provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
 provinces_data<-fix_region_names(istat_regions, provinces_data)
 
+dpc_provinces<-distinct(select(provinces_data, denominazione_provincia))
+dpc_provinces<-arrange(dpc_provinces, denominazione_provincia)
+
+# Province name hotfix DPC to ISTAT (Aosta, Bolzano, Massa Carrara) 
+
+dpc_names_to_fix<-anti_join(dpc_provinces,istat_provinces,by=c('denominazione_provincia'='province_name'))
+
+dpc_names_to_fix$txt<-substring(dpc_names_to_fix$denominazione_provincia,1,5)
+provinces_data$denominazione_provincia<-as.character(provinces_data$denominazione_provincia)
+ for (i in 1:nrow(dpc_names_to_fix) ) {
+   abbreviation<-dpc_names_to_fix$txt[i]
+   indx<-grep(abbreviation,istat_provinces$province_name)
+   formal_province_name<-as.character(istat_provinces[indx,]$province_name)
+   matching_indx<-grep(abbreviation,provinces_data$denominazione_provincia)
+   provinces_data$denominazione_provincia[matching_indx]<-as.character(formal_province_name) # from the ISTAT dataset
+
+ } 
+provinces_data$denominazione_provincia<-as.factor(provinces_data$denominazione_provincia)
+
 provinces_regions_key<-inner_join(istat_provinces, provinces_data,by=c('province_name'='denominazione_provincia'))
+
 
 provinces_regions_key<-distinct(select(provinces_regions_key, province_name, sigla_provincia, codice_provincia, territory_code, denominazione_regione, codice_regione, regional_territory_code))   
 italian_regions<-distinct(select(provinces_regions_key,denominazione_regione))
@@ -106,15 +138,21 @@ prov_declining_trend<-arrange(prov_declining_trend, -trend)
 print(prov_declining_trend)
 ```
 *Trend is an approximation = (current_rate-cubic_rate)x100*
-*Per capita = total cases per 100000 (one hundred thousand) people*
 
+### Total cases per area (km2)
+```{r echo=FALSE, message=FALSE} 
+```
+
+### Provinces per capita (total cases per 100000 people) rate.
 ```{r echo=FALSE, message=FALSE} 
 provinces_per_capita<-select(provinces_calculations, dt, denominazione_provincia, denominazione_regione, totale_casi, per_capita)
 most_recent_dt<-max(provinces_per_capita$dt)
 provinces_per_capita<-arrange(provinces_per_capita,-per_capita) 
-print(most_recent_dt)
+#print(most_recent_dt)
 provinces_per_capita_latest<-provinces_per_capita[provinces_per_capita$dt==most_recent_dt,]
-print(select(provinces_per_capita_latest,denominazione_provincia, denominazione_regione, per_capita, totale_casi),row.names = F)
+provinces_per_capita_latest$pos<-nrow(provinces_per_capita_latest)-rank(provinces_per_capita_latest$per_capita)+1
+provinces_per_capita_latest<-arrange(provinces_per_capita_latest, -per_capita)
+print(select(provinces_per_capita_latest,pos, denominazione_provincia, denominazione_regione, per_capita),row.names = F)
 print(summary(provinces_per_capita_latest$per_capita))
 ```
 
