@@ -39,6 +39,15 @@ three_days_ago  <- function() {
 }
 
 
+# Useful for 'days before' calculations 
+head_na<-function(vec, n) {
+  
+  na_filler<-rep(NA,n)
+  num_observations_to_retain<-length(vec)-n
+  observations_to_keep<-head(vec, num_observations_to_retain)
+  c(na_filler,observations_to_keep)
+}
+
 # n = number of inactive cases (generally at a later date).  Used in "backlog" computations.
 backlog_dt  <- function(df, n) {
   temp <- df[df$positives_remaining >= n,]
@@ -429,6 +438,8 @@ intl_col_names<-gsub("totale_casi","total_cases",intl_col_names)
 intl_col_names<-gsub("tamponi","tests",intl_col_names)
 intl_col_names<-gsub("note_","notes_",intl_col_names)
 intl_col_names<-gsub("stato","nation",intl_col_names)
+# Added for provinces
+intl_col_names<-gsub("denominazione_provincia","province_name",intl_col_names)
 colnames(df)<-intl_col_names
 df 
 
