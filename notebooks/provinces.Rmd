@@ -56,73 +56,130 @@ provinces_data<-filter_extraneous_rows(dpc_covid19_ita_provinces)
 provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
 provinces_data<-fix_region_names(istat_regions, provinces_data)
 
-dpc_provinces<-distinct(select(provinces_data, denominazione_provincia))
-dpc_provinces<-arrange(dpc_provinces, denominazione_provincia)
-
-# Province name hotfix DPC to ISTAT (Aosta, Bolzano, Massa Carrara) 
-
-dpc_names_to_fix<-anti_join(dpc_provinces,istat_provinces,by=c('denominazione_provincia'='province_name'))
-
-dpc_names_to_fix$txt<-substring(dpc_names_to_fix$denominazione_provincia,1,5)
-provinces_data$denominazione_provincia<-as.character(provinces_data$denominazione_provincia)
- for (i in 1:nrow(dpc_names_to_fix) ) {
-   abbreviation<-dpc_names_to_fix$txt[i]
-   indx<-grep(abbreviation,istat_provinces$province_name)
-   formal_province_name<-as.character(istat_provinces[indx,]$province_name)
-   matching_indx<-grep(abbreviation,provinces_data$denominazione_provincia)
-   provinces_data$denominazione_provincia[matching_indx]<-as.character(formal_province_name) # from the ISTAT dataset
-
- } 
-provinces_data$denominazione_provincia<-as.factor(provinces_data$denominazione_provincia)
-
-provinces_regions_key<-inner_join(istat_provinces, provinces_data,by=c('province_name'='denominazione_provincia'))
-
-
-provinces_regions_key<-distinct(select(provinces_regions_key, province_name, sigla_provincia, codice_provincia, territory_code, denominazione_regione, codice_regione, regional_territory_code))   
-italian_regions<-distinct(select(provinces_regions_key,denominazione_regione))
-italian_regions<-arrange(italian_regions, denominazione_regione)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-# To do: include population data for each province (ISTAT figures for January 1, 2019)
-provinces_data<-inner_join(provinces_data, istat_provinces, by=c('denominazione_provincia'='province_name'))
-provinces_data<-add_dt_column(provinces_data)
-```
-
-
-```{r echo=FALSE, message=FALSE}
-# Adds total case columns for the respective dates (generalized version) 
-provinces_data<-expand_dt_columns(provinces_data, "denominazione_provincia", "totale_casi") 
-```
-
-```{r echo=FALSE, message=FALSE}
-provinces_calculations<-provinces_data
-
-current_total_cases<-total_cases_on_dt(provinces_data, days_before(provinces_data,0))
-total_cases_1_day_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,1))
-total_cases_2_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,2))
-total_cases_3_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,3))
-total_cases_4_days_before<-total_cases_on_dt(provinces_data, days_before(provinces_data,4))
+# Province name hotfix - DPC to ISTAT (Aosta, Bolzano, Massa Carrara) 
+dpc_provinces <-
+  dpc_province_names(provinces_data) # makes use of helper function
+  province_names_to_adjust <-
+  setdiff(dpc_provinces, as.character(istat_provinces$province_name))
   
-provinces_calculations$current_rate<-current_total_cases/total_cases_1_day_before
-provinces_calculations$yesterdays_rate<-total_cases_1_day_before/total_cases_2_days_before
-provinces_calculations$rate_two_days_before<-total_cases_2_days_before/total_cases_3_days_before
-provinces_calculations$rate_three_days_before<-total_cases_3_days_before/total_cases_4_days_before
+  provinces_data$denominazione_provincia <-
+  as.character(provinces_data$denominazione_provincia)
+  for (i in 1:length(province_names_to_adjust)) {
+  province_name_initials <- substring(province_names_to_adjust[i], 1, 5)
+  record_to_read_indx <-
+  grep(province_name_initials, istat_provinces$province_name)
+  formal_province_name <-
+  as.character(istat_provinces[record_to_read_indx, ]$province_name)
+  record_to_change_indx <-
+  grep(province_name_initials,
+  provinces_data$denominazione_provincia)
+  provinces_data$denominazione_provincia[record_to_change_indx] <-
+  as.character(formal_province_name) # from the ISTAT dataset
+  
+  }
+  provinces_data$denominazione_provincia <-
+  as.factor(provinces_data$denominazione_provincia)
+  
+  provinces_regions_key <-
+  inner_join(istat_provinces,
+  provinces_data,
+  by = c('province_name' = 'denominazione_provincia'))
+  
+```
 
-provinces_calculations$cubic_rate<-(current_total_cases/total_cases_3_days_before)^(1/3)
-provinces_calculations$cubic_perc_rate<-(provinces_calculations$cubic_rate-1)*100
-provinces_calculations$current_perc_rate<-(provinces_calculations$current_rate-1)*100
-provinces_calculations$trend<-round((provinces_calculations$current_rate-provinces_calculations$cubic_rate)*100, digits=1)
-provinces_calculations$per_capita<-provinces_calculations$totale_casi/provinces_calculations$population*100000
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+provinces_regions_key <-
+  distinct(
+  select(
+  provinces_regions_key,
+  province_name,
+  sigla_provincia,
+  codice_provincia,
+  territory_code,
+  denominazione_regione,
+  codice_regione,
+  regional_territory_code
+  )
+  )
+  italian_regions <-
+  distinct(select(provinces_regions_key, denominazione_regione))
+  italian_regions <- arrange(italian_regions, denominazione_regione)
+```
 
-most_recent_dt<-retrieve_most_recent_dt(provinces_calculations)
-three_days_before<-most_recent_dt-3 
-provinces_latest<-provinces_calculations[provinces_calculations$dt==most_recent_dt,]
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+provinces_data <-
+  inner_join(provinces_data,
+             istat_provinces,
+             by = c('denominazione_provincia' = 'province_name'))
+             provinces_data <- add_dt_column(provinces_data)
+```
+
+
+```{r echo=FALSE, message=FALSE}
+# Adds total case columns for the respective dates (generalized version)
+provinces_data <-
+  expand_dt_columns(provinces_data, "denominazione_provincia", "totale_casi") 
+```
+
+```{r echo=FALSE, message=FALSE}
+provinces_calculations <- provinces_data
+
+current_total_cases <-
+total_cases_on_dt(provinces_data, days_before(provinces_data, 0))
+total_cases_1_day_before <-
+total_cases_on_dt(provinces_data, days_before(provinces_data, 1))
+total_cases_2_days_before <-
+total_cases_on_dt(provinces_data, days_before(provinces_data, 2))
+total_cases_3_days_before <-
+total_cases_on_dt(provinces_data, days_before(provinces_data, 3))
+total_cases_4_days_before <-
+total_cases_on_dt(provinces_data, days_before(provinces_data, 4))
+
+provinces_calculations$current_rate <-
+current_total_cases / total_cases_1_day_before
+provinces_calculations$yesterdays_rate <-
+total_cases_1_day_before / total_cases_2_days_before
+provinces_calculations$rate_two_days_before <-
+total_cases_2_days_before / total_cases_3_days_before
+provinces_calculations$rate_three_days_before <-
+total_cases_3_days_before / total_cases_4_days_before
+
+provinces_calculations$cubic_rate <-
+(current_total_cases / total_cases_3_days_before) ^ (1 / 3)
+provinces_calculations$cubic_perc_rate <-
+(provinces_calculations$cubic_rate - 1) * 100
+provinces_calculations$current_perc_rate <-
+(provinces_calculations$current_rate - 1) * 100
+provinces_calculations$trend <-
+round((
+provinces_calculations$current_rate - provinces_calculations$cubic_rate
+) * 100,
+digits = 1
+)
+provinces_calculations$per_capita <-
+provinces_calculations$totale_casi / provinces_calculations$population *
+100000
+
+most_recent_dt <- retrieve_most_recent_dt(provinces_calculations)
+three_days_before <- most_recent_dt - 3
+provinces_latest <-
+provinces_calculations[provinces_calculations$dt == most_recent_dt, ]
 
 # Increasing rate in total cases
-prov_increasing_trend<-provinces_latest[provinces_latest$trend>0,]
-prov_increasing_trend<-select(prov_increasing_trend, denominazione_provincia, totale_casi, current_perc_rate, trend,per_capita)
-prov_increasing_trend<-arrange(prov_increasing_trend, -trend)
+prov_increasing_trend <- provinces_latest[provinces_latest$trend > 0, ]
+prov_increasing_trend <-
+select(
+prov_increasing_trend,
+denominazione_provincia,
+totale_casi,
+current_perc_rate,
+trend,
+per_capita
+)
+prov_increasing_trend <- arrange(prov_increasing_trend,-trend)
 ```
 
 ### Provinces with an augmenting rate of increase in the number of cases
@@ -132,9 +189,17 @@ print(prov_increasing_trend)
 
 ### Provinces with a steady or declining rate of increase 
 ```{r echo=FALSE, message=FALSE} 
-prov_declining_trend<-provinces_latest[provinces_latest$trend<=0,]
-prov_declining_trend<-select(prov_declining_trend, denominazione_provincia, totale_casi, current_perc_rate, trend, per_capita)
-prov_declining_trend<-arrange(prov_declining_trend, -trend)
+prov_declining_trend <- provinces_latest[provinces_latest$trend <= 0, ]
+prov_declining_trend <-
+select(
+prov_declining_trend,
+denominazione_provincia,
+totale_casi,
+current_perc_rate,
+trend,
+per_capita
+)
+prov_declining_trend <- arrange(prov_declining_trend,-trend)
 print(prov_declining_trend)
 ```
 *Trend is an approximation = (current_rate-cubic_rate)x100*
@@ -145,15 +210,36 @@ print(prov_declining_trend)
 
 ### Provinces per capita (total cases per 100000 people) rate.
 ```{r echo=FALSE, message=FALSE} 
-provinces_per_capita<-select(provinces_calculations, dt, denominazione_provincia, denominazione_regione, totale_casi, per_capita)
-most_recent_dt<-max(provinces_per_capita$dt)
-provinces_per_capita<-arrange(provinces_per_capita,-per_capita) 
-#print(most_recent_dt)
-provinces_per_capita_latest<-provinces_per_capita[provinces_per_capita$dt==most_recent_dt,]
-provinces_per_capita_latest$pos<-nrow(provinces_per_capita_latest)-rank(provinces_per_capita_latest$per_capita)+1
-provinces_per_capita_latest<-arrange(provinces_per_capita_latest, -per_capita)
-print(select(provinces_per_capita_latest,pos, denominazione_provincia, denominazione_regione, per_capita),row.names = F)
-print(summary(provinces_per_capita_latest$per_capita))
+provinces_per_capita <-
+  select(
+  provinces_calculations,
+  dt,
+  denominazione_provincia,
+  denominazione_regione,
+  totale_casi,
+  per_capita
+  )
+  most_recent_dt <- max(provinces_per_capita$dt)
+  provinces_per_capita <- arrange(provinces_per_capita, -per_capita)
+  #print(most_recent_dt)
+  provinces_per_capita_latest <-
+  provinces_per_capita[provinces_per_capita$dt == most_recent_dt, ]
+  provinces_per_capita_latest$pos <-
+  nrow(provinces_per_capita_latest) - rank(provinces_per_capita_latest$per_capita) +
+  1
+  provinces_per_capita_latest <-
+  arrange(provinces_per_capita_latest,-per_capita)
+  print(
+  select(
+  provinces_per_capita_latest,
+  pos,
+  denominazione_provincia,
+  denominazione_regione,
+  per_capita
+  ),
+  row.names = F
+  )
+  print(summary(provinces_per_capita_latest$per_capita))
 ```
 
 ```{r echo=FALSE, message=FALSE} 
@@ -169,37 +255,50 @@ write.csv(provinces_per_capita_latest,file.path(csv_exports_dir,"provinces_per_c
 ### Graphs - Total case progression - Provinces by region 
 
 ```{r echo=FALSE, message=FALSE}
- require(ggplot2)
+require(ggplot2)
 
-    specified_cols<-c("dt","denominazione_provincia","denominazione_regione","totale_casi","current_perc_rate","cubic_perc_rate","per_capita")
-    
+specified_cols <-
+c(
+"dt",
+"denominazione_provincia",
+"denominazione_regione",
+"totale_casi",
+"current_perc_rate",
+"cubic_perc_rate",
+"per_capita"
+)
 
-      
-    prov_calc_sel<-select(provinces_calculations, all_of(specified_cols))
 
-  prov_calc_sel<-filtered_for_the_most_recent_days(prov_calc_sel,1)
 
-  prov_calc_sel<-translated_province_column_names(prov_calc_sel)
-    for (i in 1:nrow(italian_regions) ) {
-   selected_region<-italian_regions[i,]
-    print(plot_cubic_rate_chart(provinces_calculations, selected_region))
-    local_provinces<-filtered_by_region(prov_calc_sel, selected_region)
-   
-    local_provinces$denominazione_regione<-NULL 
-    local_provinces$percent_rate<-round(local_provinces$current_perc_rate, digits=2)
-    local_provinces$three_day_rate<-round(local_provinces$cubic_perc_rate, digits=2)
-    local_provinces$current_perc_rate<-NULL
-    local_provinces$cubic_perc_rate<-NULL
-    
-    observation_dt<-mean(local_provinces$dt)
-    print(observation_dt, row.names = F)
-    local_provinces$dt<-NULL
-    print(local_provinces, row.names = F)  
-    
- }
+prov_calc_sel <-
+select(provinces_calculations, all_of(specified_cols))
 
-  rm(local_provinces)    
+prov_calc_sel <- filtered_for_the_most_recent_days(prov_calc_sel, 1)
+
+prov_calc_sel <- translated_province_column_names(prov_calc_sel)
+for (i in 1:nrow(italian_regions)) {
+selected_region <- italian_regions[i, ]
+print(plot_cubic_rate_chart(provinces_calculations, selected_region))
+local_provinces <-
+filtered_by_region(prov_calc_sel, selected_region)
+
+local_provinces$denominazione_regione <- NULL
+local_provinces$percent_rate <-
+round(local_provinces$current_perc_rate, digits = 2)
+local_provinces$three_day_rate <-
+round(local_provinces$cubic_perc_rate, digits = 2)
+local_provinces$current_perc_rate <- NULL
+local_provinces$cubic_perc_rate <- NULL
+
+observation_dt <- mean(local_provinces$dt)
+print(observation_dt, row.names = F)
+local_provinces$dt <- NULL
+print(local_provinces, row.names = F)
+
+}
+
+rm(local_provinces)    
           
 ```
 
-*This page last updated: 16/4/2020*
+*This page last updated: 19/4/2020*
