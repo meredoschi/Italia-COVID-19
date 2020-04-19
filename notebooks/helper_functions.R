@@ -149,6 +149,52 @@ dpc_province_names <- function(df) {
   as.character(ordered_province_names$denominazione_provincia)
 }
 
+# n = Number of digits
+rounded_province_trends<-function(df,n) { 
+
+  df$daily_growth<-round(df$current_perc_rate, digits=n)
+  df$current_perc_rate<-NULL
+  df$per_capita<-round(df$per_capita_rate, digits=n)  
+  df$per_capita_rate<-NULL
+  df$trend<-round(df$trend, digits=n)
+  df
+  }
+
+#df = provinces_data (i.e. with province names as used by the dpc)
+# istat_provinces = Province names following ISTAT
+
+dpc_to_istat_province_name_fix <- function(df, istat_provinces_df) {
+
+  dpc_provinces <-
+  dpc_province_names(df) # makes use of helper function
+province_names_to_adjust <-
+  setdiff(dpc_provinces, as.character(istat_provinces_df$province_name))
+
+df$denominazione_provincia <-
+  as.character(df$denominazione_provincia)
+for (i in 1:length(province_names_to_adjust)) {
+  province_name_initials <- substring(province_names_to_adjust[i], 1, 5)
+  record_to_read_indx <-
+    grep(province_name_initials, istat_provinces$province_name)
+  formal_province_name <-
+    as.character(istat_provinces[record_to_read_indx, ]$province_name)
+  record_to_change_indx <-
+    grep(province_name_initials,
+         df$denominazione_provincia)
+  df$denominazione_provincia[record_to_change_indx] <-
+    as.character(formal_province_name) # from the ISTAT dataset
+  
+}
+
+  # convert province name (denominazione_provincia) column back to factor
+  df$denominazione_provincia <-
+  as.factor(df$denominazione_provincia)
+  
+  df 
+
+} 
+
+
 consistent_region_names <- function(istat_df, dpc_df) {
   # Default: factor
   istat_df$region_name <- as.character(istat_df$region_name)
