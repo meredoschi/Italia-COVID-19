@@ -5,15 +5,17 @@ output: html_document
 ---
 
 ```{r echo=FALSE, message=FALSE}
-
+source(file.path(getwd(),"helper_functions.R"))
+library(ggplot2)
 unexpanded_columns<-grep("totale_casi_",colnames(provinces_data), invert=TRUE)
 provinces_data_unexpanded<-provinces_data[,unexpanded_columns]
-total_cases_by_province<-select(provinces_data_unexpanded, dt, denominazione_provincia, totale_casi)
+total_cases_by_province<-select(provinces_data_unexpanded, dt, denominazione_provincia, denominazione_regione, totale_casi)
 
 total_cases_by_province<-translated_column_names(total_cases_by_province)
 
-total_cases_by_province<-arrange(total_cases_by_province, province_name, total_cases)
-  
+# sorted by region name
+total_cases_by_province<-arrange(total_cases_by_province, denominazione_regione, province_name, total_cases)
+
 selected_province_name<-"Roma"
 
 individual_province_data<-total_cases_by_province[total_cases_by_province$province_name==selected_province_name,]
@@ -32,6 +34,15 @@ individual_province_data$cubic_rate<-'^'(individual_province_data$growth_factor_
 individual_province_data$cubic_perc_rate<-(individual_province_data$cubic_rate-1)*100
 ```
 
+```{r echo=FALSE, message=FALSE}
+individual_province_rates<-individual_province_data[is.finite(individual_province_data$cubic_perc_rate),]
+plot(individual_province_rates$dt, individual_province_rates$cubic_perc_rate)
+  
+ txt<-'COVID-19 total case progression'
+  cubic_chart_title<-paste(selected_province_name,"province")
+  cubic_rate_chart<-ggplot(data=individual_province_rates)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(cubic_chart_title)+xlab(paste(txt,format(min(individual_province_rates$dt),"%d %b"),"-",format(max(individual_province_rates$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
+  print(cubic_rate_chart)
+```
 
 
 *This page last updated: 19/4/2020*
