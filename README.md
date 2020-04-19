@@ -25,9 +25,9 @@ Double check steps 4 and 5 if you get a message similar to the one below, whenev
 `cd Protezione-Civile-Dataset`
 `git submodule update --remote`
 
-## In the notebooks folder you'll find:
-
 ### National
+
+[national.html](https://github.com/meredoschi/Italia-COVID-19/blob/master/notebooks/national.html)
 
 Calculations and graphs based on data at the country level.
 
@@ -35,11 +35,15 @@ Raw data source: *dpc-covid19-ita-andamento-nazionale.csv*
 
 ### Provinces
 
+[provinces.html](https://github.com/meredoschi/Italia-COVID-19/blob/master/notebooks/provinces.html)
+
 Calculations and graphs based on data at the subnational level.
 
 Raw data source: *dpc-covid19-ita-province.csv*
 
 ##Technical information (my local environment)
+
+*Obs: you may download the notebook html files above and view their contents in a web browser, if you wish.  That is, no installation required.*
 
 R version 3.6.3 (2020-02-29)
 
@@ -49,6 +53,6 @@ system x86_64, darwin15.6.0
 
 git version 2.19.1
 
-*This page last updated: 16/4/2020*
+*This page last updated: 19/4/2020*
 
 *Marcelo Eduardo Redoschi*
