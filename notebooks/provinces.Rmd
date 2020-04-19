@@ -82,16 +82,15 @@ dpc_provinces <-
   }
   provinces_data$denominazione_provincia <-
   as.factor(provinces_data$denominazione_provincia)
-  
-  provinces_regions_key <-
-  inner_join(istat_provinces,
-  provinces_data,
-  by = c('province_name' = 'denominazione_provincia'))
-  
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 provinces_regions_key <-
+  inner_join(istat_provinces,
+  provinces_data,
+  by = c('province_name' = 'denominazione_provincia'))
+  
+  provinces_regions_key <-
   distinct(
   select(
   provinces_regions_key,
