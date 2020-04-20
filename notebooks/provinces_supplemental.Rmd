@@ -41,6 +41,18 @@ individual_province_rates<-individual_province_data[is.finite(individual_provinc
  
   print(province_chart)
 ```
+```{r echo=FALSE, message=FALSE}
+for (i in 1:nrow(italian_regions)) {
+selected_region_name <- as.character(italian_regions[i, ])
+txt<-"-------------------------------------------"
+txt2<-"<><><><><><><><><><><><><><><><>"
+print(paste(txt,selected_region_name,txt))
 
+local_provinces_key<-provinces_regions_key[provinces_regions_key$denominazione_regione==selected_region_name,]
+local_province_names<-local_provinces_key$province_name
+print(local_province_names)
+print(paste(txt2,txt2,txt2,sep=''))
+} 
+```
 
 *This page last updated: 19/4/2020*
