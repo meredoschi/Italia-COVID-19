@@ -36,12 +36,13 @@ individual_province_data$cubic_perc_rate<-(individual_province_data$cubic_rate-1
 
 ```{r echo=FALSE, message=FALSE}
 individual_province_rates<-individual_province_data[is.finite(individual_province_data$cubic_perc_rate),]
-plot(individual_province_rates$dt, individual_province_rates$cubic_perc_rate)
   
  txt<-'COVID-19 total case progression'
-  cubic_chart_title<-paste(selected_province_name,"province")
-  cubic_rate_chart<-ggplot(data=individual_province_rates)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(cubic_chart_title)+xlab(paste(txt,format(min(individual_province_rates$dt),"%d %b"),"-",format(max(individual_province_rates$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
-  print(cubic_rate_chart)
+  province_chart<-provincial_cubic_rate_chart(individual_province_rates,selected_province_name)
+ 
+#  province_chart_title<-paste(selected_province_name,"province")
+#  province_chart<-ggplot(data=individual_province_rates)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(individual_province_rates$dt),"%d %b"),"-",format(max(individual_province_rates$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
+  print(province_chart)
 ```
 
 
