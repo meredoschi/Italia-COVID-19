@@ -1,7 +1,9 @@
 ---
 title: "Calculations and charts - Italian provinces (by region) - COVID-19 Epidemic"
 author: "Marcelo Eduardo Redoschi"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 #### Based on the Protezione Civile Dataset and adjusted for the ISTAT (National Statistics Institute) regional and provincial nomenclature

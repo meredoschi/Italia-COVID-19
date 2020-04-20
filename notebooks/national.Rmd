@@ -337,5 +337,5 @@ nat6[nat6$inactive_discharged_healed_deceased >= initial_num_cases, ]
 ```{r echo=FALSE, message=FALSE}
 write.csv(nat_calc, file.path(csv_exports_dir, "nat_calc.csv"))
 ```
-*This page last updated: 18/4/2020*
+*This page last updated: 20/4/2020*
 
