@@ -234,6 +234,15 @@ write.csv(provinces_per_capita_latest,file.path(csv_exports_dir,"provinces_per_c
 ### Graphs - Total case progression - Provinces by region (for the most recent days observed)
 
 ```{r echo=FALSE, message=FALSE}
+total_cases_by_province<-select(provinces_data, dt, denominazione_provincia, denominazione_regione, totale_casi)
+total_cases_by_province<-translated_column_names(total_cases_by_province)
+
+# sorted by region name
+total_cases_by_province<-arrange(total_cases_by_province, denominazione_regione, province_name, total_cases)
+
+```
+
+```{r echo=FALSE, message=FALSE}
 require(ggplot2)
 
 specified_cols <-
@@ -257,6 +266,15 @@ prov_calc_sel <- filtered_for_the_most_recent_days(prov_calc_sel, 1)
 prov_calc_sel <- translated_province_column_names(prov_calc_sel)
 for (i in 1:nrow(italian_regions)) {
 selected_region <- italian_regions[i, ]
+
+  selected_region_name<-as.character(selected_region)
+  
+  local_provinces_key <-
+  provinces_regions_key[provinces_regions_key$denominazione_regione == selected_region_name,]
+  local_province_names <- local_provinces_key$province_name
+  
+    # Regional chart (one or more provinces)
+
 print(regional_cubic_rate_chart(provinces_calculations, selected_region))
 local_provinces <-
 filtered_by_region(prov_calc_sel, selected_region)
@@ -274,10 +292,49 @@ print(observation_dt, row.names = F)
 local_provinces$dt <- NULL
 print(local_provinces, row.names = F)
 
+  
+  
+  for (j in 1:length(local_province_names)) {
+  local_province_name <- local_province_names[j]
+  #  print(local_province_name)
+  
+  local_province_data <-
+  total_cases_by_province[total_cases_by_province$province_name == local_province_name, ]
+  num_days_recorded <- nrow(local_province_data)
+  local_province_data$total_cases_day_before <-
+  head_na(local_province_data$total_cases, 1)
+  local_province_data$total_cases_three_days_before <-
+  head_na(local_province_data$total_cases, 3)
+  
+  local_province_data$current_rate <-
+  (local_province_data$total_cases) / (local_province_data$total_cases_day_before)
+  local_province_data$current_perc_rate <-
+  (local_province_data$current_rate - 1) * 100
+  local_province_data$growth_factor_in_three_days <-
+  ((local_province_data$total_cases) / (local_province_data$total_cases_three_days_before)
+  )
+  local_province_data$cubic_rate <-
+  '^'(local_province_data$growth_factor_in_three_days, 1 / 3)
+  local_province_data$cubic_perc_rate <-
+  (local_province_data$cubic_rate - 1) * 100
+  local_province_rates <-
+  local_province_data[is.finite(local_province_data$cubic_perc_rate), ]
+  
+  
+  
+  province_chart <-
+  provincial_cubic_rate_chart(local_province_rates, local_province_name)
+  
+  print(province_chart)
+
+  } 
+
+rm(local_provinces)      
+
 }
 
-rm(local_provinces)    
+
           
 ```
 
-*This page last updated: 19/4/2020*
+*This page last updated: 20/4/2020*

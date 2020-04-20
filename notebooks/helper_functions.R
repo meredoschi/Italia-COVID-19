@@ -422,7 +422,7 @@ cubic_rate_chart
 provincial_cubic_rate_chart<-function(df,selected_province_name) {
 txt<-'COVID-19 total case progression'
 province_chart_title<-paste(selected_province_name,"province")
-province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(individual_province_rates$dt),"%d %b"),"-",format(max(individual_province_rates$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
+province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
 }
 # ----- Column translations -----
 
