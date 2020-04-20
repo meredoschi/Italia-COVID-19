@@ -257,7 +257,7 @@ prov_calc_sel <- filtered_for_the_most_recent_days(prov_calc_sel, 1)
 prov_calc_sel <- translated_province_column_names(prov_calc_sel)
 for (i in 1:nrow(italian_regions)) {
 selected_region <- italian_regions[i, ]
-print(plot_cubic_rate_chart(provinces_calculations, selected_region))
+print(regional_cubic_rate_chart(provinces_calculations, selected_region))
 local_provinces <-
 filtered_by_region(prov_calc_sel, selected_region)
 

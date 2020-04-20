@@ -410,7 +410,7 @@ retrieve_istat_provinces<-function(istat_df) {
 # ----- Charts -----
 
 # df = provinces_calculations 
-plot_regional_cubic_rate_chart<-function(df,selected_region) { 
+regional_cubic_rate_chart<-function(df,selected_region) { 
 local_province_data<-df[df$denominazione_regione==selected_region,]
 local_province_data<-arrange(local_province_data, denominazione_provincia)
 province_label_text<-element_text(face = "bold", color = "black", size = 11, angle=20) 
