@@ -195,13 +195,29 @@ chart3_title <-
   
   chart3 <-
   ggplot(nat_calc,
-  aes(y = deceased_per_positives_day_before_ratio, x = dt)) + geom_path(color =
+  aes(y = deceased_per_positives_day_before_ratio, x = dt)) + geom_line(color =
   "orange") + ggtitle(chart3_title) + xlab("Date") +
   ylab("In thousands")
   print(chart3)
   
 ```
 
+```{r fig.height=5, fig.width=10, echo=FALSE}
+
+chart3_supplemental_title <-
+  paste('Positives remaining delta (after fatalities and discharged or healed)',
+  format(min(national$dt), "%d %b"),
+  "-",
+  format(max(national$dt), "%d %b %Y")
+  )
+  
+  chart3_supplemental <-
+  ggplot(data=nat_calc)+ geom_line(aes(y = positives_remaining_delta, x = dt),color =
+  "#2FA0D6") + ggtitle(chart3_supplemental_title) + xlab("Date") +
+  ylab("people")
+  print(chart3_supplemental)
+  
+```
 ```{r echo=FALSE}
 nat4 <-
   select(
@@ -335,7 +351,23 @@ nat6[nat6$inactive_discharged_healed_deceased >= initial_num_cases, ]
 ```
 
 ```{r echo=FALSE, message=FALSE}
+national_case_backlog$positives_remaining_days_trailing_ratio<-national_case_backlog$positives_remaining/as.integer(national_case_backlog$num_days_trailing)
+```
+
+```{r echo=FALSE, message=FALSE}
+chart8_title <-
+  paste("'Backlog' - inactive (fatalities, discharged or healed) vs. cases still active")
+  
+  chart8 <-
+  ggplot(data=national_case_backlog)+
+  geom_line(aes(y = num_days_trailing, x = dt),color = "darkblue") + ggtitle(chart8_title) + xlab(paste(format(min(national_case_backlog$dt), "%d %b"),
+  "-",
+  format(max(national_case_backlog$dt), "%d %b %Y"))) + ylab("Approximate number of days behind")
+  print(chart8)
+```
+
+```{r echo=FALSE, message=FALSE}
 write.csv(nat_calc, file.path(csv_exports_dir, "nat_calc.csv"))
 ```
-*This page last updated: 20/4/2020*
+*This page last updated: 21/4/2020*
 
