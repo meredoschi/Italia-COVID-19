@@ -3,41 +3,42 @@
 This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy,
 in hopes it may be useful to the community in these difficult times.
 
-You may wish to type on a terminal or git shell: `git clone https://github.com/meredoschi/Italia-COVID-19 --recursive`
+## Suggested setup
 
-I am not affiliated with the *Protezione Civile*, I've merely downloaded their dataset.
+1. Start RStudio
+2. Choose File, New project...
+3. (Create project) Version control (checkout a project from a version control repository)
+4. Git (clone a project from a git repository)
+5. Repository URL: https://github.com/meredoschi/Italia-COVID-19
+6. After download, selected the git tab (inside RStudio)
+7. Click on the tool at the right hand side and select "Shell"
+8. After the shell prompt appears type: `git submodule init; git submodule update`
 
-For questions or further information regarding their project or repository, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
+## Notebooks
 
-`cd Protezione-Civile-Dataset`
-`git submodule update --remote`
+I've created two notebooks, which may be run inside a suitable RStudio environment.
 
-## About the notebooks
+### National (Italy)
 
-### National
+### Provinces (grouped by the corresponding region)
 
-[national.html](https://github.com/meredoschi/Italia-COVID-19/blob/master/notebooks/national.html)
-
-Calculations and graphs based on data at the country level.
-
-Raw data source: *dpc-covid19-ita-andamento-nazionale.csv*
-
-### Provinces
-
-[provinces.html](https://github.com/meredoschi/Italia-COVID-19/blob/master/notebooks/provinces.html)
-
-Calculations and graphs based on data at the subnational level.
-
-Raw data source: *dpc-covid19-ita-province.csv*
-
-*You may download the notebook html files above and view their contents in a web browser, without any additional software installed.*
-
-## Development environment
+## Technical information - development environment
 
 R language version 3.6.3 (2020-02-29)
 RStudio version 1.1.463
 git version 2.19.1
 Operation system details:  darwin15.6.0, x86_64
+
+*You may wish to type on a terminal or git shell: `git clone https://github.com/meredoschi/Italia-COVID-19 --recursive`*
+
+## Disclaimer
+
+I am not affiliated with the *Protezione Civile*, I've merely imported their CSV files.
+
+National data: *dpc-covid19-ita-andamento-nazionale.csv*
+Province data: *dpc-covid19-ita-province.csv*
+
+For questions or further information regarding their project or repository, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
 
 *This page last updated: 22/4/2020*
 
