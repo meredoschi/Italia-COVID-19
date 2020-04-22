@@ -369,5 +369,4 @@ chart8_title <-
 ```{r echo=FALSE, message=FALSE}
 write.csv(nat_calc, file.path(csv_exports_dir, "nat_calc.csv"))
 ```
-*This page last updated: 21/4/2020*
 
