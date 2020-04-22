@@ -1,6 +1,6 @@
 # Marcelo Eduardo Redoschi
 # helper functions - COVID 19 calculations
-# Last updated: 18 - 4 - 2020
+# Last updated: 22 - 4 - 2020
 
 import_csv<-function(fname) { 
   # na.string explicitly set since NA is by coincidence, the Naples province abbreviation!
@@ -354,20 +354,25 @@ filtered_for_the_most_recent_days<-function(df, n) {
 
 # ---------- ISTAT DATA ----------
 
-process_population_csv<-function(population_csv_fname) { 
+process_istat_population_csv<-function(population_csv_fname) { 
   
-population<-read.csv(population_csv_fname,encoding="UTF-8",na.strings="undefined") 
-pop_all_genders<-population[population$Gender=='total',]
-pop_all_marital<-population[population$'Marital.status'=='total',]
-pop_marital_gen<-pop_all_marital[pop_all_marital$Gender=='total',]
-pop_mrt_gen_age<-pop_marital_gen[pop_marital_gen$ETA1=='TOTAL',]
-istat_population<-select(pop_mrt_gen_age, ITTER107, Territory, Value)
-col_names<-colnames(istat_population)
-intl_col_names<-gsub("ITTER107","territory_code",col_names)
-intl_col_names<-gsub("Territory","territory_name",intl_col_names)
-intl_col_names<-gsub("Value","population",intl_col_names)
-colnames(istat_population)<-intl_col_names
-istat_population
+  df<-read.csv(population_csv_fname,encoding="UTF-8",na.strings="undefined") 
+  df_all_genders<-df[df$Gender=='total',]
+  df_all_marital<-df[df$'Marital.status'=='total',]
+  df_marital_gen<-df_all_marital[df_all_marital$Gender=='total',]
+  df_mrt_gen_age<-df_marital_gen[df_marital_gen$ETA1=='TOTAL',]
+  df<-select(df_mrt_gen_age, ITTER107, Territory, Value)
+  df
+} 
+
+population_intl_column_names<-function(df) { 
+  
+  col_names<-colnames(df)
+  intl_col_names<-gsub("ITTER107","territory_code",col_names)
+  intl_col_names<-gsub("Territory","territory_name",intl_col_names)
+  intl_col_names<-gsub("Value","population",intl_col_names)
+  colnames(df)<-intl_col_names
+  df
 } 
 
 # Italy
@@ -422,8 +427,15 @@ cubic_rate_chart
 provincial_cubic_rate_chart<-function(df,selected_province_name) {
 txt<-'COVID-19 total case progression'
 province_chart_title<-paste(selected_province_name,"province")
-province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=cubic_perc_rate),color="purple")+geom_line(aes(x=dt,y=current_perc_rate),color="darkblue")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. 3 day average (shown in purple) % growth rate")  
+province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=cubic_perc_rate),color="#540331", linetype=2)+geom_line(aes(x=dt,y=current_perc_rate),color="#017365")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. previous 3 day average % growth rate")  
 }
+
+provincial_seven_day_rate_chart<-function(df,selected_province_name) {
+  txt<-'COVID-19 total case progression'
+  province_chart_title<-paste(selected_province_name,"province")
+  province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=seventh_perc_rate),color="#362802", linetype=3)+geom_line(aes(x=dt,y=current_perc_rate),color="#017365")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. previous 7 day average % growth rate")  
+}
+
 # ----- Column translations -----
 
 # National
