@@ -24,10 +24,10 @@ I've created two notebooks, which may be run inside a suitable RStudio environme
 
 ## Technical information - development environment
 
-R language version 3.6.3 (2020-02-29)
-RStudio version 1.1.463
-git version 2.19.1
-Operation system details:  darwin15.6.0, x86_64
+- R language version 3.6.3 (2020-02-29)
+- RStudio version 1.1.463
+- Git version 2.19.1
+- Operation system details:  OS X 10.11.6
 
 *You may wish to type on a terminal or git shell: `git clone https://github.com/meredoschi/Italia-COVID-19 --recursive`*
 
@@ -40,6 +40,6 @@ Province data: *dpc-covid19-ita-province.csv*
 
 For questions or further information regarding their project or repository, kindly refer to: *[https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)*
 
-*This page last updated: 22/4/2020*
+*This page last updated: 24/4/2020*
 
 *Marcelo Eduardo Redoschi*
