@@ -267,7 +267,7 @@ total_cases_by_province<-arrange(total_cases_by_province, denominazione_regione,
 
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r  fig.height=5, fig.width=10, echo=FALSE, message=FALSE}
 require(ggplot2)
 
 specified_cols <-
@@ -281,17 +281,14 @@ c(
 "per_capita_rate"
 )
 
-
-
 prov_calc_sel <-
 select(provinces_calculations, all_of(specified_cols))
 
 prov_calc_sel <- filtered_for_the_most_recent_days(prov_calc_sel, 1)
 
 prov_calc_sel <- translated_province_column_names(prov_calc_sel)
-# for (i in 1:nrow(italian_regions)) {
 
-i<-1
+for (i in 1:nrow(italian_regions)) {
 
 selected_region <- italian_regions[i,]
 
@@ -306,44 +303,34 @@ local_province_names <- local_provinces_key$province_name
   local_province_data <- provinces_calculations[provinces_calculations$denominazione_regione == selected_region, ]
   local_province_data <-
     arrange(local_province_data, denominazione_provincia)
-  
-  province_label_text <-
-    element_text(
-      face = "bold",
-      color = "black",
-      size = 11,
-      angle = 20
-    )
 
 # Regional chart (one or more provinces)
 
-regional_provinces_cubic_rate_chart <-regional_cubic_rate_chart(local_province_data, selected_region)
+current_rate_color<-"#EB9B5E"
+cubic_rate_color<-"#2C9FD4"
+x_label_text="Province"
+cubic_rate_line_type="dashed"
 
-regional_provinces_cubic_rate_chart<-regional_provinces_cubic_rate_chart+theme(axis.text.x = province_label_text)
+regional_provinces_cubic_rate_chart <-cubic_rate_boxplot_chart(local_province_data, selected_region,current_rate_color,cubic_rate_color,x_label_text, cubic_rate_line_type)
 
+font_size<-11 
+angle<-20 
+regional_provinces_cubic_rate_chart<-styled_x_axis(regional_provinces_cubic_rate_chart,font_size,angle) 
+  
 print(regional_provinces_cubic_rate_chart)
 
 local_provinces <-
 filtered_by_region(prov_calc_sel, selected_region)
 
-local_provinces$denominazione_regione <- NULL
-local_provinces$percent_rate <-
-round(local_provinces$current_perc_rate, digits = 2)
-local_provinces$three_day_rate <-
-round(local_provinces$cubic_perc_rate, digits = 2)
-local_provinces$current_perc_rate <- NULL
-local_provinces$cubic_perc_rate <- NULL
-
 observation_dt <- mean(local_provinces$dt)
 print(observation_dt, row.names = F)
-local_provinces$dt <- NULL
-print(local_provinces, row.names = F)
 
+local_provinces$denominazione_regione <- NULL
 
+print(rates_formatted_for_printing(local_provinces), row.names = F)  
 
 for (j in 1:length(local_province_names)) {
 local_province_name <- local_province_names[j]
-#  print(local_province_name)
 
 local_province_data <-
 total_cases_by_province[total_cases_by_province$province_name == local_province_name,]
@@ -382,7 +369,6 @@ local_province_data[is.finite(local_province_data$cubic_perc_rate),]
 local_province_rates2 <-
 local_province_data[is.finite(local_province_data$seventh_perc_rate),]
 
-
 province_chart <-
 provincial_cubic_rate_chart(local_province_rates, local_province_name)
 
@@ -397,7 +383,7 @@ print(province_chart2)
 
 rm(local_provinces)
 
-# } # regions loop
+} # regions loop
 
           
 ```
