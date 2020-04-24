@@ -415,26 +415,110 @@ retrieve_istat_provinces<-function(istat_df) {
 # ----- Charts -----
 
 # df = provinces_calculations 
-regional_cubic_rate_chart<-function(df,selected_region) { 
-local_province_data<-df[df$denominazione_regione==selected_region,]
-local_province_data<-arrange(local_province_data, denominazione_provincia)
-province_label_text<-element_text(face = "bold", color = "black", size = 11, angle=20) 
-cubic_chart_title<-paste(selected_region,format(three_days_before,"%d %b"),"-",format(most_recent_dt,"%d %b %Y"))
-cubic_rate_chart<-ggplot(local_province_data)+geom_boxplot(aes(y=cubic_perc_rate, x=denominazione_provincia),color="#EB9B5E",linetype = "dashed")+geom_boxplot(aes(y=current_perc_rate, x=denominazione_provincia),color="#2C9FD4")+ggtitle(cubic_chart_title)+xlab("Province")+ylab("current vs. 3 day (shown dashed) % rate")+theme(axis.text.x = province_label_text)  
-cubic_rate_chart
-} 
-
-provincial_cubic_rate_chart<-function(df,selected_province_name) {
-txt<-'COVID-19 total case progression'
-province_chart_title<-paste(selected_province_name,"province")
-province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=cubic_perc_rate),color="#540331", linetype=2)+geom_line(aes(x=dt,y=current_perc_rate),color="#017365")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. previous 3 day average % growth rate")  
+regional_cubic_rate_chart <- function(df, selected_region) {
+  local_province_data <- df[df$denominazione_regione == selected_region, ]
+  local_province_data <-
+    arrange(local_province_data, denominazione_provincia)
+  province_label_text <-
+    element_text(
+      face = "bold",
+      color = "black",
+      size = 11,
+      angle = 20
+    )
+  cubic_chart_title <-
+    paste(
+      selected_region,
+      format(three_days_before, "%d %b"),
+      "-",
+      format(most_recent_dt, "%d %b %Y")
+    )
+  cubic_rate_chart <-
+    ggplot(local_province_data) + geom_boxplot(
+      aes(y = cubic_perc_rate, x = denominazione_provincia),
+      color = "#EB9B5E",
+      linetype = "dashed"
+    ) + geom_boxplot(aes(y = current_perc_rate, x = denominazione_provincia),
+                     color = "#2C9FD4") + ggtitle(cubic_chart_title) + xlab("Province") + ylab("current vs. 3 day (shown dashed) % rate") +
+    theme(axis.text.x = province_label_text)
+  cubic_rate_chart
 }
 
-provincial_seven_day_rate_chart<-function(df,selected_province_name) {
-  txt<-'COVID-19 total case progression'
-  province_chart_title<-paste(selected_province_name,"province")
-  province_chart<-ggplot(data=df)+geom_line(aes(x=dt,y=seventh_perc_rate),color="#362802", linetype=3)+geom_line(aes(x=dt,y=current_perc_rate),color="#017365")+ggtitle(province_chart_title)+xlab(paste(txt,format(min(df$dt),"%d %b"),"-",format(max(df$dt),"%d %b %Y")))+ylab("current vs. previous 7 day average % growth rate")  
+# More generic formulation 
+current_and_cubic_rate_chart <-
+  function(df,
+           title_txt,
+           x_label_prefix,
+           current_rate_color,
+           cubic_rate_color) {
+    chart <-
+      ggplot(data = df) + geom_line(aes(x = dt, y = cubic_perc_rate),
+                                    color = cubic_rate_color,
+                                    linetype = 2) + geom_line(aes(x = dt, y = current_perc_rate), color = current_rate_color) +
+      ggtitle(title_txt) + xlab(paste(
+        x_label_prefix,
+        format(min(df$dt), "%d %b"),
+        "-",
+        format(max(df$dt), "%d %b %Y")
+      )) + ylab("current vs. cubic (last three days) % growth rate")
+    chart
+  }
+
+# More generic formulation 
+current_and_seven_day_rate_chart <-
+  function(df,
+           title_txt,
+           x_label_prefix,
+           current_rate_color,
+           seventh_rate_color) {
+    chart <-
+      ggplot(data = df) + geom_line(aes(x = dt, y = seventh_perc_rate),
+                                    color = seventh_rate_color,
+                                    linetype = 3) + geom_line(aes(x = dt, y = current_perc_rate), color = current_rate_color) +
+      ggtitle(title_txt) + xlab(paste(
+        x_label_prefix,
+        format(min(df$dt), "%d %b"),
+        "-",
+        format(max(df$dt), "%d %b %Y")
+      )) + ylab("current vs. previous 7 day average % growth rate")
+    chart
+  }
+
+provincial_cubic_rate_chart <- function(df, selected_province_name) {
+
+  # Set the appropriate parameters
+  title_txt <- paste(selected_province_name, "province")
+  x_label_prefix <- 'COVID-19 total case progression'
+  current_rate_color <- "#017365"
+  cubic_rate_color <- "#540331"
+
+  current_and_cubic_rate_chart(df,
+                               title_txt,
+                               x_label_prefix,
+                               current_rate_color,
+                               cubic_rate_color)
+  
 }
+
+provincial_seven_day_rate_chart <-
+  
+  function(df, selected_province_name) {
+  
+    # Set the appropriate parameters
+    
+    title_txt <- paste(selected_province_name, "province")
+    x_label_prefix <- 'COVID-19 total case progression'
+    current_rate_color <- "#017365"
+    seventh_rate_color <- "#362802"
+  
+    current_and_seven_day_rate_chart(df,
+                                     title_txt,
+                                     x_label_prefix,
+                                     current_rate_color,
+                                     seventh_rate_color)
+    
+  }
+
 
 # ----- Column translations -----
 
@@ -471,3 +555,41 @@ translated_province_column_names<-function(df) {
   colnames(df)<-intl_col_names
   df 
 } 
+
+## Three and seven day averages 
+
+# Weighted average rates (for the previous three and seven days, with respect to a particular attribute)
+# df = country or province (sub-national) data
+add_three_and_seven_day_rate_columns<-function(df, attrib) { 
+  attrib_whole_word<-paste("^",attrib,'$',sep='')
+  attrib_col_indx<-grep(attrib_whole_word,colnames(df))
+  attrib_col<-df[,attrib_col_indx] # i.e. a vector 
+    
+  df$attrib_day_before<- head_na(attrib_col, 1) 
+  df$attrib_three_days_before <- head_na(attrib_col, 3)
+  df$attrib_seven_days_before <- head_na(attrib_col, 7)
+  
+  df$current_rate <-
+  (attrib_col) / (df$attrib_day_before)
+
+  df$current_perc_rate <- (df$current_rate - 1) * 100
+
+  df$growth_factor_in_three_days <- (attrib_col) / (df$attrib_three_days_before)
+
+  df$cubic_rate <-
+    '^'(df$growth_factor_in_three_days, 1 / 3)
+  df$cubic_perc_rate <-
+    (df$cubic_rate - 1) * 100
+  
+  df$growth_factor_in_seven_days <- (attrib_col) / (df$attrib_seven_days_before)
+
+  df$seven_day_rate <- '^'(df$growth_factor_in_seven_days, 1 / 7)
+
+  df$seventh_perc_rate <-(df$seven_day_rate - 1) * 100
+  
+  # Rename columns
+  colnames(df)<-gsub("attrib",attrib,colnames(df))
+  
+  df 
+
+}
