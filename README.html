@@ -180,49 +180,88 @@ summary {
 </div>
 
 
-<div id="readme" class="section level2">
-<h2>README</h2>
-<div id="about-this-project" class="section level3">
-<h3>About this project</h3>
-<div id="this-repository-contains-some-of-my-own-personal-calculations-regarding-the-current-covid-10-epidemic-in-italy." class="section level4">
-<h4>This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy.</h4>
+<div id="readme-italia-covid-19-repository" class="section level2">
+<h2>README (Italia-COVID-19 repository)</h2>
+<div id="i.-introduction" class="section level3">
+<h3>I. Introduction</h3>
+<p>This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy.</p>
 <p>I do hope these charts and possible insights may be useful somehow, especially if you are in a professional capacity in this veritable fight against the disease.</p>
 <p><em>I am not an epidemiologist, just a simple mathematician.</em></p>
 </div>
+<div id="ii.-about-the-project-directories" class="section level3">
+<h3>II. About the project directories</h3>
+<div id="notebooks" class="section level4">
+<h4>notebooks</h4>
+<p>Contains the source code I’ve programmed that was used to generate the html documents, including the helper functions.</p>
+<p><strong>Source code in R</strong></p>
+<ul>
+<li><p><a href="notebooks/national.Rmd">national</a></p></li>
+<li><p><a href="notebooks/provinces.Rmd">provincial</a></p></li>
+<li><p><a href="notebooks/helper_functions.R">helper_functions</a></p></li>
+</ul>
+<p><strong>Html documents (reports produced)</strong></p>
+<ul>
+<li><p><a href="notebooks/national.html">national</a></p></li>
+<li><p><a href="notebooks/provinces.html">provincial</a></p></li>
+</ul>
 </div>
-<div id="available-documents-no-installation-should-be-required" class="section level3">
-<h3>Available documents (no installation should be required)</h3>
-<p>At present, there are two reports available: one for the <a href="notebooks/national.html">national</a> and other for the <a href="notebooks/provinces.html">provincial</a> situation.</p>
-<hr />
-</div>
-<div id="data-sources" class="section level3">
-<h3>Data sources</h3>
+<div id="csv_input" class="section level4">
+<h4>csv_input</h4>
 <p>The population data comes from <a href="http://dati.istat.it/Index.aspx?QueryId=18460&amp;lang=en">ISTAT</a>. A few regional and province names were adjusted accordingly.</p>
+<div id="protezione-civile-dataset" class="section level5">
+<h5>Protezione-Civile-Dataset</h5>
 <p>The COVID-19 case information is from the <a href="http://www.protezionecivile.gov.it">Dipartimento della Protezione Civile</a>.</p>
 <p>Using appropriate git commands (since I’ve included it as a git submodule), it should be possible to check if there were updates to the DPC CSV files.</p>
 <p>In which case may I suggest that you ran the notebooks again, to see the latest results in your local environment.</p>
 <p>For questions or further information regarding the DPC project repository, kindly refer to: <a href="https://github.com/pcm-dpc/COVID-19" class="uri">https://github.com/pcm-dpc/COVID-19</a></p>
 <p><em>In other words, I am not affiliated with ISTAT or the DPC.</em></p>
+</div>
+<div id="others-foldersmiscellaneous" class="section level5">
+<h5>Others folders/miscellaneous</h5>
+<ul>
+<li>csv_exports</li>
+<li>optional_pre_processing</li>
+</ul>
+<p><em>Optional, included for completeness.</em></p>
 <hr />
 </div>
-<div id="technical-installation-instructions-for-interested-scientists-doctors-and-other-professionals" class="section level3">
-<h3>Technical installation instructions (for interested scientists, doctors and other professionals)</h3>
+</div>
+</div>
+<div id="iii.-technical-installation-instructions" class="section level3">
+<h3>III. Technical installation instructions</h3>
+<div id="pre-requisites" class="section level4">
+<h4><em>Pre-requisites</em></h4>
+<ul>
+<li><p>The <a href="https://cran.rstudio.com/">R programming language</a>.</p></li>
+<li><p><a href="https://rstudio.com/products/rstudio/download/">RStudio software</a> (the free, open source ‘desktop’ version should work just fine).</p></li>
+</ul>
+</div>
+<div id="steps" class="section level4">
+<h4><em>Steps</em></h4>
 <ol style="list-style-type: decimal">
-<li>Install the R programming language (if needed)</li>
-<li>Install the RStudio software (if needed)</li>
-<li>Start RStudio</li>
 <li>Choose File, New project…</li>
-<li>(Create project) Version control (checkout a project from a version control repository)</li>
-<li>Git (clone a project from a git repository)</li>
-<li>Repository URL: <a href="https://github.com/meredoschi/Italia-COVID-19" class="uri">https://github.com/meredoschi/Italia-COVID-19</a></li>
-<li>After the dowload is completed and the project created, select the git tab (inside RStudio)</li>
-<li>Click on the tool at the right hand side and select “Shell…”</li>
-<li>After the shell appears, type: <code>git submodule init; git submodule update</code></li>
 </ol>
+<ul>
+<li><p>(Create project) Version control (checkout a project from a version control repository)</p></li>
+<li><p>Git (clone a project from a git repository)</p></li>
+<li><p>Repository URL: <a href="https://github.com/meredoschi/Italia-COVID-19" class="uri">https://github.com/meredoschi/Italia-COVID-19</a></p></li>
+</ul>
+<p><em>Wait for the download to be completed and the project to be created. It may take some seconds to a minute, depending on your connection.</em></p>
+<ol start="2" style="list-style-type: decimal">
+<li>Then select the git tab (inside RStudio) in the new project just created (upper right hand corner of the screen).</li>
+</ol>
+<ul>
+<li><p>A tool icon should appear, just below the word Git. Click on the small arrow to its side and then select “Shell…”</p></li>
+<li><p>After the shell prompt appears, type: <code>git submodule init; git submodule update</code> and then press ENTER (return) to confirm. You may close this window and return to the project.</p></li>
+<li><p>(Optional but recommended) In the Files tab, make sure there is data inside the COVID-19 subdirectory (click on the Protezione-Civile-Dataset folder to navigate to it, if needed).</p></li>
+</ul>
 <hr />
 </div>
-<div id="about-my-development-environment" class="section level3">
-<h3>About my development environment</h3>
+</div>
+<div id="iv.-about-my-development-environment" class="section level3">
+<h3>IV. About my development environment</h3>
+<div id="for-interested-scientists-doctors-and-other-professionals." class="section level4">
+<h4>For interested scientists, doctors and other professionals.</h4>
 <ul>
 <li>R language version 3.6.3 (2020-02-29)</li>
 <li>RStudio version 1.1.463</li>
@@ -233,7 +272,8 @@ summary {
 <p><code>git clone https://github.com/meredoschi/Italia-COVID-19 --recursive</code></p>
 <hr />
 <p><strong>Marcelo Eduardo Redoschi</strong></p>
-<p>This page last updated: 25/4/2020</p>
+<p><em>This page last updated: 25/4/2020</em></p>
+</div>
 </div>
 </div>
 

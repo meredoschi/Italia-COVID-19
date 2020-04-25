@@ -1,22 +1,38 @@
-## README 
+## README (Italia-COVID-19 repository)
 
-### About this project
+### I. Introduction
 
-#### This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy.  
+This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy.  
 
 I do hope these charts and possible insights may be useful somehow, especially if you are in a professional capacity in this veritable fight against the disease. 
 
 *I am not an epidemiologist, just a simple mathematician.*
 
-### Available documents (no installation should be required)
+### II. About the project directories
 
-At present, there are two reports available: one for the [national](notebooks/national.html) and other for the [provincial](notebooks/provinces.html) situation.
+#### notebooks
 
----
+Contains the source code I've programmed that was used to generate the html documents, including the helper functions. 
 
-### Data sources
+**Source code in R** 
+
+- [national](notebooks/national.Rmd) 
+
+- [provincial](notebooks/provinces.Rmd)
+
+- [helper_functions](notebooks/helper_functions.R)
+
+**Html documents (reports produced)** 
+
+- [national](notebooks/national.html) 
+
+- [provincial](notebooks/provinces.html)
+
+#### csv_input 
 
 The population data comes from [ISTAT](http://dati.istat.it/Index.aspx?QueryId=18460&lang=en).  A few regional and province names were adjusted accordingly.
+
+##### Protezione-Civile-Dataset
 
 The COVID-19 case information is from the [Dipartimento della Protezione Civile](http://www.protezionecivile.gov.it).  
 
@@ -28,24 +44,48 @@ For questions or further information regarding the DPC project repository, kindl
 
 *In other words, I am not affiliated with ISTAT or the DPC.*   
 
----
+##### Others folders/miscellaneous 
 
-### Technical installation instructions (for interested scientists, doctors and other professionals)
+- csv_exports 
+- optional_pre_processing
 
-1. Install the R programming language (if needed)
-2. Install the RStudio software (if needed)
-3. Start RStudio
-4. Choose File, New project...
-5. (Create project) Version control (checkout a project from a version control repository)
-6. Git (clone a project from a git repository)
-7. Repository URL: https://github.com/meredoschi/Italia-COVID-19
-8. After the dowload is completed and the project created, select the git tab (inside RStudio)
-9. Click on the tool at the right hand side and select "Shell..."
-10. After the shell appears, type: `git submodule init; git submodule update`
+*Optional, included for completeness.* 
 
 ---
 
-### About my development environment 
+### III. Technical installation instructions 
+
+#### *Pre-requisites*
+
++ The [R programming language](https://cran.rstudio.com/). 
+
++ [RStudio software](https://rstudio.com/products/rstudio/download/) (the free, open source 'desktop' version should work just fine).
+
+#### *Steps*
+
+1. Choose File, New project...
+
+ - (Create project) Version control (checkout a project from a version control repository)
+
+ -  Git (clone a project from a git repository)
+
+ - Repository URL: https://github.com/meredoschi/Italia-COVID-19 
+   
+  *Wait for the download to be completed and the project to be created.  It may take some seconds to a minute, depending on your connection.*
+
+2. Then select the git tab (inside RStudio) in the new project just created (upper right hand corner of the screen).
+
+- A tool icon should appear, just below the word Git. Click on the small arrow to its side and then select "Shell..."
+
+- After the shell prompt appears, type: `git submodule init; git submodule update` and then press ENTER (return) to confirm.  You may close this window and return to the project.  
+
+- (Optional but recommended) In the Files tab, make sure there is data inside the COVID-19 subdirectory (click on the Protezione-Civile-Dataset folder to navigate to it, if needed).
+
+--- 
+
+### IV. About my development environment 
+
+#### For interested scientists, doctors and other professionals.
 
 - R language version 3.6.3 (2020-02-29)
 - RStudio version 1.1.463
@@ -60,4 +100,4 @@ Depending on your specifics, you may wish to type on a terminal or git shell:
 
 **Marcelo Eduardo Redoschi**
 
-This page last updated: 25/4/2020
+*This page last updated: 25/4/2020*
