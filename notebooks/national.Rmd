@@ -354,16 +354,33 @@ nat6[nat6$inactive_discharged_healed_deceased >= initial_num_cases, ]
 national_case_backlog$positives_remaining_days_trailing_ratio<-national_case_backlog$positives_remaining/as.integer(national_case_backlog$num_days_trailing)
 ```
 
-```{r echo=FALSE, message=FALSE}
+
+```{r fig.height=5, fig.width=10, echo=FALSE}
 chart8_title <-
-  paste("'Backlog' - inactive (fatalities, discharged or healed) vs. cases still active")
+  paste('Intensive care (in red), hospitalized with symptoms and home isolation daily changes',
+  format(min(national$dt), "%d %b"),
+  "-",
+  format(max(national$dt), "%d %b %Y")
+  )
   
   chart8 <-
+  ggplot(data=deltas_nat_labelled) + geom_line(aes(y = intensive_care_delta, x = dt),color = "red") + geom_line(aes(y = home_isolation_delta, x = dt),color = "orange") + geom_line(aes(y = hospitalized_with_symptoms_delta, x = dt),color = "yellow", size=2) + 
+   ggtitle(chart8_title) + xlab("Date") + ylab("people")
+
+  print(chart8)
+  
+```
+
+```{r echo=FALSE, message=FALSE}
+chart9_title <-
+  paste("'Backlog' - inactive (fatalities, discharged or healed) vs. cases still active")
+  
+  chart9 <-
   ggplot(data=national_case_backlog)+
-  geom_line(aes(y = num_days_trailing, x = dt),color = "darkblue") + ggtitle(chart8_title) + xlab(paste(format(min(national_case_backlog$dt), "%d %b"),
+  geom_line(aes(y = num_days_trailing, x = dt),color = "darkblue") + ggtitle(chart9_title) + xlab(paste(format(min(national_case_backlog$dt), "%d %b"),
   "-",
   format(max(national_case_backlog$dt), "%d %b %Y"))) + ylab("Approximate number of days behind")
-  print(chart8)
+  print(chart9)
 ```
 
 ```{r echo=FALSE, message=FALSE}
