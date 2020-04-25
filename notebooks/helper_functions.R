@@ -427,58 +427,42 @@ retrieve_istat_provinces<-function(istat_df) {
 
 # ----- Charts -----
 
-# df = provinces_calculations 
-# Refactoring in progress...
-regional_cubic_rate_chart0 <- function(df, selected_region) {
- 
-  cubic_chart_title <-
-    paste(
-      selected_region,
-      format(three_days_before, "%d %b"),
-      "-",
-      format(most_recent_dt, "%d %b %Y")
+cubic_rate_boxplot_chart <-
+  function(df,
+           selected_region,
+           current_rate_color,
+           cubic_rate_color,
+           xlabel_text,
+           cubic_rate_line_type) {
+    cubic_chart_title <-
+      paste(
+        selected_region,
+        format(three_days_before, "%d %b"),
+        "-",
+        format(most_recent_dt, "%d %b %Y")
+      )
+    cubic_rate_chart <-
+      ggplot(df) + geom_boxplot(
+        aes(y = cubic_perc_rate, x = denominazione_provincia),
+        color = current_rate_color,
+        linetype = cubic_rate_line_type
+      ) + geom_boxplot(aes(y = current_perc_rate, x = denominazione_provincia),
+                       color = cubic_rate_color) + ggtitle(cubic_chart_title) + xlab(xlabel_text) + ylab("current vs. 3 day % rate")
+    
+  }
+
+styled_x_axis <- function(chart, font_size, font_angle)  {
+  label_text_style <-
+    element_text(
+      face = "bold",
+      color = "black",
+      size = font_size,
+      angle = font_angle
     )
-  cubic_rate_chart <-
-    ggplot(df) + geom_boxplot(
-      aes(y = cubic_perc_rate, x = denominazione_provincia),
-      color = "#EB9B5E",
-      linetype = "dashed"
-    ) + geom_boxplot(aes(y = current_perc_rate, x = denominazione_provincia),
-                     color = "#2C9FD4") + ggtitle(cubic_chart_title) + xlab("Province") + ylab("current vs. 3 day (shown dashed) % rate")
-
-}
-
-cubic_rate_boxplot_chart <- function(df, selected_region, current_rate_color, cubic_rate_color, xlabel_text, cubic_rate_line_type) {
   
-  cubic_chart_title <-
-    paste(
-      selected_region,
-      format(three_days_before, "%d %b"),
-      "-",
-      format(most_recent_dt, "%d %b %Y")
-    )
-  cubic_rate_chart <-
-    ggplot(df) + geom_boxplot(
-      aes(y = cubic_perc_rate, x = denominazione_provincia),
-      color = current_rate_color,    
-      linetype = cubic_rate_line_type
-    ) + geom_boxplot(aes(y = current_perc_rate, x = denominazione_provincia),
-                      color = cubic_rate_color) + ggtitle(cubic_chart_title) + xlab(xlabel_text) + ylab("current vs. 3 day % rate")
+  chart <- chart + theme(axis.text.x = label_text_style)
   
-}
-styled_x_axis<-function(chart,font_size, font_angle)  { 
-
-label_text_style <-
-  element_text(
-    face = "bold",
-    color = "black",
-    size = font_size,
-    angle = font_angle
-  )
-
-chart<-chart+theme(axis.text.x = label_text_style)
-
-chart
+  chart
 }
 # More generic formulation 
 current_and_cubic_rate_chart <-
