@@ -10,7 +10,7 @@ output:
 start_time<-Sys.time()
 ```
 
-**`r format(Sys.time(), "%a %d %b %Y %X %Z")`**
+**`r format(start_time, "%a %d %b %Y %X %Z")`**
 
 #### Based on the Protezione Civile Dataset and adjusted for the ISTAT (National Statistics Institute) regional and provincial nomenclature
 
@@ -428,8 +428,14 @@ rm(province_chart2)
 } # regions loop
 
 ```
----
 
-#### `r format(Sys.time(), "%a %d %b %Y %X %Z")`
+```{r echo=FALSE, message=FALSE}
+finish_time<-Sys.time()
+```
 
 ---
+```{r echo=FALSE, message=FALSE}
+finish_time<-Sys.time()
+running_time<-(finish_time-start_time)
+```
+*This document's processing time: `r running_time`*
