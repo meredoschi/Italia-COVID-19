@@ -118,8 +118,8 @@ provinces_data <-
 
 ```{r echo=FALSE, message=FALSE}
 # Adds total case columns for the respective dates (generalized version)
-provinces_data <-
-  expand_dt_columns(provinces_data, "denominazione_provincia", "totale_casi") 
+#provinces_data <-
+#  expand_dt_columns(provinces_data, "denominazione_provincia", "totale_casi") 
 ```
 
 ```{r echo=FALSE, message=FALSE}
@@ -178,8 +178,16 @@ prov_increasing_trend <- arrange(prov_increasing_trend,-trend)
 
 ### Provinces with an augmenting rate of increase in the number of cases
 ```{r echo=FALSE, message=FALSE}
+
 print(retrieve_most_recent_dt(provinces_latest),row.names = F)
-print(rounded_province_trends(prov_increasing_trend,2))
+
+prov_increasing_trend<-rounded(prov_increasing_trend,c('current_perc_rate','per_capita_rate','trend'),2)
+
+prov_increasing_trend<-translated_province_column_names(prov_increasing_trend)
+
+prov_increasing_trend<-revised_province_column_names(prov_increasing_trend)
+
+print(prov_increasing_trend, row.names = F)
 
 ```
 
@@ -198,7 +206,17 @@ per_capita_rate
 )
 prov_declining_trend <- arrange(prov_declining_trend,-trend)
 #print(prov_declining_trend)
-print(rounded_province_trends(prov_declining_trend,2))
+
+print(retrieve_most_recent_dt(provinces_latest),row.names = F)
+
+prov_declining_trend<-rounded(prov_declining_trend,c('current_perc_rate','per_capita_rate','trend'),2)
+
+prov_declining_trend<-translated_province_column_names(prov_declining_trend)
+
+prov_declining_trend<-revised_province_column_names(prov_declining_trend)
+
+print(prov_declining_trend, row.names = F)
+
 ```
 *Trend is an approximation = (current_rate-cubic_rate)x100*
 
@@ -237,10 +255,13 @@ provinces_per_capita <-
   per_capita_rate
   )
   
-  prov_per_capita_latest_sel$per_capita_rate<-round(prov_per_capita_latest_sel$per_capita_rate, digits=2)
+#  prov_per_capita_latest_sel$per_capita_rate<-round(prov_per_capita_latest_sel$per_capita_rate, digits=2)
   
+  prov_per_capita_latest_sel<-rounded(prov_per_capita_latest_sel, c("per_capita_rate"), 2)
+    
   prov_per_capita_latest_sel$dt<-NULL 
-  
+
+  prov_per_capita_latest_sel<-translated_province_column_names(prov_per_capita_latest_sel)    
   print(prov_per_capita_latest_sel, row.names = F)
   print(summary(provinces_per_capita_latest$per_capita_rate))
   rm(prov_per_capita_latest_sel)
@@ -260,7 +281,7 @@ write.csv(provinces_per_capita_latest,file.path(csv_exports_dir,"provinces_per_c
 
 ```{r echo=FALSE, message=FALSE}
 total_cases_by_province<-select(provinces_data, dt, denominazione_provincia, denominazione_regione, totale_casi)
-total_cases_by_province<-translated_column_names(total_cases_by_province)
+total_cases_by_province<-translated_province_column_names(total_cases_by_province)
 
 # sorted by region name
 total_cases_by_province<-arrange(total_cases_by_province, denominazione_regione, province_name, total_cases)

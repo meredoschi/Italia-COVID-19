@@ -159,14 +159,20 @@ dpc_province_names <- function(df) {
 }
 
 # n = Number of digits
-rounded_province_trends<-function(df,n) { 
-
-  df$daily_growth<-round(df$current_perc_rate, digits=n)
-  df$current_perc_rate<-NULL
-  df$per_capita<-round(df$per_capita_rate, digits=n)  
-  df$per_capita_rate<-NULL
-  df$trend<-round(df$trend, digits=n)
-  df
+rounded<-function(df, column_names_to_round, n) { 
+ 
+  col_names<-colnames(df)
+  
+  for (i in 1:length(column_names_to_round)) { 
+    
+    column_name<-column_names_to_round[i]
+    
+    column_indx<-grep(column_name,col_names)
+  
+    df[,column_indx]<-round(df[,column_indx], digits=n)
+    }
+  
+  df 
   }
 
 #df = provinces_data (i.e. with province names as used by the dpc)
@@ -543,7 +549,7 @@ provincial_seven_day_rate_chart <-
 # ----- Column translations -----
 
 # National
-translated_column_names<-function(df) { 
+translated_national_column_names<-function(df) { 
 
 col_names<-colnames(df)
 intl_col_names<-gsub("ricoverati_con_sintomi","hospitalized_with_symptoms",col_names)
@@ -567,15 +573,38 @@ df
 
 } 
 
+# Zones (v = vector, e.g. istat_zones$territory_name) 
+translate_geographical_zones<-function(v) { 
+
+    v<-gsub("Nord-ovest","Northwest",v)
+    v<-gsub("Nord-est","Northeast",v)
+    v<-gsub("Centro (I)","Center",v, fixed=TRUE)
+    v<-gsub("Sud","South",v)
+    v<-gsub("Isole","Islands",v)
+    
+    v
+}   
+
+# Provinces
 translated_province_column_names<-function(df) { 
   
   col_names<-colnames(df)
+
   intl_col_names<-gsub("totale_casi","total_cases",col_names)
-  intl_col_names<-gsub("denominazione_provincia","province",intl_col_names)
+  intl_col_names<-gsub("denominazione_provincia","province_name",intl_col_names)
   colnames(df)<-intl_col_names
   df 
 } 
 
+revised_province_column_names<-function(df) { 
+  
+  col_names<-colnames(df)
+  
+  revised_col_names<-gsub("current_perc_rate","daily_growth",col_names)
+  revised_col_names<-gsub("province_name","province",revised_col_names)
+  colnames(df)<-revised_col_names
+  df 
+}
 ## Three and seven day averages 
 
 # Weighted average rates (for the previous three and seven days, with respect to a particular attribute)

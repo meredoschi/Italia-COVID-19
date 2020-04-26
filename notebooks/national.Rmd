@@ -32,7 +32,7 @@ national_csv_fname <-
 ```
 
 ```{r echo=FALSE, message=FALSE}
-national<-translated_column_names(dpc_covid19_ita_national)
+national<-translated_national_column_names(dpc_covid19_ita_national)
 national$dt<-as.Date(ymd_hms(national$data))
 national$data<-NULL 
 nat_expanded<-national
