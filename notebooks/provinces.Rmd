@@ -6,10 +6,18 @@ output:
   pdf_document: default
 ---
 
+```{r echo=FALSE, message=FALSE}
+start_time<-Sys.time()
+```
+
+**`r format(Sys.time(), "%a %d %b %Y %X %Z")`**
+
 #### Based on the Protezione Civile Dataset and adjusted for the ISTAT (National Statistics Institute) regional and provincial nomenclature
 
 *Source: dpc-covid19-ita-province.csv, own calculations*
 
+
+---
 ```{r echo=FALSE, message=FALSE}
 # Initial setup (Libraries and paths)
 library(readr)
@@ -159,64 +167,50 @@ provinces_calculations$totale_casi / provinces_calculations$population *
 
 most_recent_dt <- retrieve_most_recent_dt(provinces_calculations)
 three_days_before <- most_recent_dt - 3
-provinces_latest <-
+
+provinces_trends <-
 provinces_calculations[provinces_calculations$dt == most_recent_dt, ]
 
-# Increasing rate in total cases
-prov_increasing_trend <- provinces_latest[provinces_latest$trend > 0, ]
-prov_increasing_trend <-
-select(
-prov_increasing_trend,
+provinces_trends<-select(
+provinces_trends,
 denominazione_provincia,
 totale_casi,
 current_perc_rate,
 trend,
 per_capita_rate
 )
-prov_increasing_trend <- arrange(prov_increasing_trend,-trend)
+
+provinces_trends<-translated_province_column_names(provinces_trends)
+provinces_trends<-revised_province_column_names(provinces_trends)
+provinces_trends<-rounded(provinces_trends,c('daily_growth','per_capita','trend'),2)
+#most_recent_dt<-max(provinces_calculations$dt)
 ```
 
-### Provinces with an augmenting rate of increase in the number of cases
+### Province trends observed on `r most_recent_dt`
 ```{r echo=FALSE, message=FALSE}
-
-print(retrieve_most_recent_dt(provinces_latest),row.names = F)
-
-prov_increasing_trend<-rounded(prov_increasing_trend,c('current_perc_rate','per_capita_rate','trend'),2)
-
-prov_increasing_trend<-translated_province_column_names(prov_increasing_trend)
-
-prov_increasing_trend<-revised_province_column_names(prov_increasing_trend)
-
-print(prov_increasing_trend, row.names = F)
-
+province_stats<-summary(select(provinces_trends,daily_growth, per_capita, trend, total_cases))
+#print(most_recent_dt, row.names=F)
+print(province_stats)
 ```
 
-### Provinces with a steady or declining rate of increase 
+#### With an augmenting rate of increase in the number of cases
+```{r echo=FALSE, message=FALSE}
+prov_increasing_trend <- provinces_trends[provinces_trends$trend > 0, ] # increasing
+prov_increasing_trend <- arrange(prov_increasing_trend,-trend)
+
+print(prov_increasing_trend)
+prov_increasing_trend_sel<-select(prov_increasing_trend,daily_growth, per_capita, trend, total_cases)
+print(summary(prov_increasing_trend_sel))
+```
+
+#### With a steady or declining rate of increase 
 ```{r echo=FALSE, message=FALSE} 
-print(retrieve_most_recent_dt(provinces_latest),row.names = F)
-prov_declining_trend <- provinces_latest[provinces_latest$trend <= 0, ]
-prov_declining_trend <-
-select(
-prov_declining_trend,
-denominazione_provincia,
-totale_casi,
-current_perc_rate,
-trend,
-per_capita_rate
-)
+prov_declining_trend <- provinces_trends[provinces_trends$trend <= 0, ]
 prov_declining_trend <- arrange(prov_declining_trend,-trend)
-#print(prov_declining_trend)
 
-print(retrieve_most_recent_dt(provinces_latest),row.names = F)
-
-prov_declining_trend<-rounded(prov_declining_trend,c('current_perc_rate','per_capita_rate','trend'),2)
-
-prov_declining_trend<-translated_province_column_names(prov_declining_trend)
-
-prov_declining_trend<-revised_province_column_names(prov_declining_trend)
-
-print(prov_declining_trend, row.names = F)
-
+print(prov_declining_trend)
+prov_declining_trend_sel<-select(prov_declining_trend,daily_growth, per_capita, trend, total_cases)
+print(summary(prov_declining_trend_sel))
 ```
 *Trend is an approximation = (current_rate-cubic_rate)x100*
 
@@ -262,14 +256,16 @@ provinces_per_capita <-
   prov_per_capita_latest_sel$dt<-NULL 
 
   prov_per_capita_latest_sel<-translated_province_column_names(prov_per_capita_latest_sel)    
+  prov_per_capita_latest_sel<-revised_province_column_names(prov_per_capita_latest_sel)
+
   print(prov_per_capita_latest_sel, row.names = F)
-  print(summary(provinces_per_capita_latest$per_capita_rate))
+    
   rm(prov_per_capita_latest_sel)
 ```
 
 ```{r echo=FALSE, message=FALSE} 
 write.csv(provinces_calculations,file.path(csv_exports_dir,"provinces_calculations.csv"))
-write.csv(provinces_latest,file.path(csv_exports_dir,"provinces_latest.csv"))
+write.csv(provinces_trends,file.path(csv_exports_dir,"provinces_trends.csv"))
 write.csv(prov_increasing_trend,file.path(csv_exports_dir,"provinces_increasing_trend.csv"))
 write.csv(prov_declining_trend,file.path(csv_exports_dir,"provinces_declining_trend.csv"))
 write.csv(provinces_regions_key,file.path(csv_exports_dir,"provinces_regions_key.csv"))
@@ -309,7 +305,11 @@ prov_calc_sel <- filtered_for_the_most_recent_days(prov_calc_sel, 1)
 
 prov_calc_sel <- translated_province_column_names(prov_calc_sel)
 
-for (i in 1:nrow(italian_regions)) {
+```
+
+```{r  fig.height=5, fig.width=10, echo=FALSE, message=FALSE}
+
+ for (i in 1:nrow(italian_regions)) {
 
 selected_region <- italian_regions[i,]
 
@@ -334,23 +334,42 @@ cubic_rate_line_type="dashed"
 
 regional_provinces_cubic_rate_chart <-cubic_rate_boxplot_chart(local_province_data, selected_region,current_rate_color,cubic_rate_color,x_label_text, cubic_rate_line_type)
 
-font_size<-11 
+font_size<-11
 angle<-20 
 regional_provinces_cubic_rate_chart<-styled_x_axis(regional_provinces_cubic_rate_chart,font_size,angle) 
-  
+
+### ************ Regional provinces chart ***********   
 print(regional_provinces_cubic_rate_chart)
+### *************************************************
 
 local_provinces <-
 filtered_by_region(prov_calc_sel, selected_region)
 
 observation_dt <- mean(local_provinces$dt)
+observation_dt_txt<-format(observation_dt, format="%d %B %Y")
+regional_summary_txt<-paste("Regional summary for '",selected_region,"'")
+
+# `r regional_summary_txt`
+
+# `r observation_dt_txt`
+
 print(observation_dt, row.names = F)
 
 local_provinces$denominazione_regione <- NULL
 
-print(rates_formatted_for_printing(local_provinces), row.names = F)  
+formatted_local_province_rates<-select(local_provinces, -dt)
+formatted_local_province_rates<-revised_province_column_names(formatted_local_province_rates)
+formatted_local_province_rates_p<-rounded(formatted_local_province_rates,c("daily_growth","per_capita","three_day_rate"),2) # for printing
+print(formatted_local_province_rates_p, row.names = F)  
+
+# Summary statistics
+local_province_rates_sel<-select(formatted_local_province_rates,daily_growth,three_day_rate,total_cases,per_capita)
+print(summary(local_province_rates_sel))
+
+# Provincial charts (current vs. three and seven day averages)
 
 for (j in 1:length(local_province_names)) {
+
 local_province_name <- local_province_names[j]
 
 local_province_data <-
@@ -395,6 +414,7 @@ provincial_cubic_rate_chart(local_province_rates, local_province_name)
 
 print(province_chart)
 
+
 province_chart2 <-
 provincial_seven_day_rate_chart(local_province_rates2, local_province_name)
 
@@ -403,8 +423,13 @@ print(province_chart2)
 }
 
 rm(local_provinces)
-
+rm(province_chart)
+rm(province_chart2)
 } # regions loop
 
-          
 ```
+---
+
+#### `r format(Sys.time(), "%a %d %b %Y %X %Z")`
+
+---

@@ -535,7 +535,7 @@ provincial_seven_day_rate_chart <-
     title_txt <- paste(selected_province_name, "province")
     x_label_prefix <- 'COVID-19 total case progression'
     current_rate_color <- "#017365"
-    seventh_rate_color <- "#362802"
+    seventh_rate_color <- "#A8B600"
   
     current_and_seven_day_rate_chart(df,
                                      title_txt,
@@ -601,7 +601,9 @@ revised_province_column_names<-function(df) {
   col_names<-colnames(df)
   
   revised_col_names<-gsub("current_perc_rate","daily_growth",col_names)
+  revised_col_names<-gsub("cubic_perc_rate","three_day_rate",revised_col_names)
   revised_col_names<-gsub("province_name","province",revised_col_names)
+  revised_col_names<-gsub("per_capita_rate","per_capita",revised_col_names)
   colnames(df)<-revised_col_names
   df 
 }
