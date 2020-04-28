@@ -368,7 +368,12 @@ print(formatted_local_province_rates_p, row.names = F)
 
 # Summary statistics
 local_province_rates_sel<-select(formatted_local_province_rates,daily_growth,three_day_rate,total_cases,per_capita)
-print(summary(local_province_rates_sel))
+
+if (nrow(formatted_local_province_rates)>1) {
+
+  print(summary(local_province_rates_sel))
+
+}
 
 # Provincial charts (current vs. three and seven day averages)
 
