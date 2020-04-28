@@ -85,7 +85,7 @@ colnames(istat_area)<-col_names
 provincial_data_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
 dpc_covid19_ita_provinces<-import_csv(provincial_data_csv_fname)
 
-provinces_data<-filter_extraneous_rows(dpc_covid19_ita_provinces)
+provinces_data<-distinct(filter_extraneous_rows(dpc_covid19_ita_provinces))
 provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
 provinces_data<-fix_region_names(istat_regions, provinces_data)
 provinces_data<-dpc_to_istat_province_name_fix(provinces_data,istat_provinces)
@@ -171,18 +171,22 @@ three_days_before <- most_recent_dt - 3
 provinces_trends <-
 provinces_calculations[provinces_calculations$dt == most_recent_dt, ]
 
-provinces_trends<-select(
+provinces_calculations<-distinct(provinces_calculations)
+
+provinces_trends<-distinct(select(
 provinces_trends,
 denominazione_provincia,
 totale_casi,
 current_perc_rate,
 trend,
 per_capita_rate
-)
+))
 
 provinces_trends<-translated_province_column_names(provinces_trends)
+
 provinces_trends<-revised_province_column_names(provinces_trends)
 provinces_trends<-rounded(provinces_trends,c('daily_growth','per_capita','trend'),2)
+
 #most_recent_dt<-max(provinces_calculations$dt)
 ```
 
