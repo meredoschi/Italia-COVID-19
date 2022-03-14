@@ -26,6 +26,7 @@ library(dplyr)
 library(markdown)
 library(ggplot2)
 source(file.path(getwd(),"helper_functions.R"))
+source(file.path(getwd(),"chart_helpers.R"))
 
 main_dir<-file.path(getwd(), "..") # Project's main directory (top level)
 notebooks_dir<-file.path(main_dir, "notebooks") 
@@ -85,11 +86,38 @@ colnames(istat_area)<-col_names
 
 provincial_data_csv_fname<-file.path(datasets_path,"dati-province","dpc-covid19-ita-province.csv")
 dpc_covid19_ita_provinces<-import_csv(provincial_data_csv_fname)
+dpc_covid19_ita_provinces<-forli_cesena_accent_fix(dpc_covid19_ita_provinces)
 
 provinces_data<-distinct(filter_extraneous_rows(dpc_covid19_ita_provinces))
-provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
-provinces_data<-fix_region_names(istat_regions, provinces_data)
-provinces_data<-dpc_to_istat_province_name_fix(provinces_data,istat_provinces)
+#provinces_data<-trentino_sudtirol_fix(provinces_data,"Trentino Alto Adige / Südtirol")
+
+provinces_data$denominazione_regione<- gsub("Friuli Venezia Giulia",'Friuli-Venezia Giulia',provinces_data$denominazione_regione)
+
+provinces_data$denominazione_regione<- gsub("P.A. Bolzano","Trentino Alto Adige / Südtirol",provinces_data$denominazione_regione)
+
+provinces_data$denominazione_regione<- gsub("P.A. Trento","Trentino Alto Adige / Südtirol",provinces_data$denominazione_regione)
+
+provinces_data$denominazione_regione<- gsub("Valle d'Aosta","Valle d'Aosta / Vallée d'Aoste",provinces_data$denominazione_regione)
+
+# setdiff(sort(unique(provinces_data$denominazione_provincia)),sort(istat_provinces$province_name))
+# [1] "Aosta"                              "Bolzano"                            "Fuori Regione / Provincia Autonoma" "Massa Carrara"  
+#provinces_data$denominazione_regione<-fix_region_names(istat_regions, provinces_data)
+
+provinces_data$denominazione_provincia<- gsub("Aosta","Valle d'Aosta / Vallée d'Aoste",provinces_data$denominazione_provincia)
+provinces_data$denominazione_provincia<- gsub("Bolzano","Bolzano / Bozen",provinces_data$denominazione_provincia)
+provinces_data$denominazione_provincia<- gsub("Massa Carrara","Massa-Carrara",provinces_data$denominazione_provincia)
+
+provinces_data[provinces_data$denominazione_regione=="Trentino Alto Adige / Südtirol",]$codice_regione<-4 # Fixed an inconsistency from the DPC dataset (removed the 'artificial' 21 and 22 regional codes) which caused repeated plots (impacted the "local_province_names") for the "Trentino Alto Adige / Südtirol" region.
+
+#provinces_data<-dpc_to_istat_province_name_fix(provinces_data,istat_provinces)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Density
+province_areas<-distinct(inner_join(istat_provinces, istat_area, by=c('province_name'='territory_name')))
+province_areas$density<-province_areas$population/province_areas$km2
+province_areas<-select(province_areas,"province_name","km2","density") 
+provinces_data<-inner_join(provinces_data, province_areas,by=c('denominazione_provincia'='province_name'))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -133,6 +161,8 @@ provinces_data <-
 
 ```{r echo=FALSE, message=FALSE}
 provinces_calculations <- provinces_data
+
+provinces_calculations <-provinces_calculations[provinces_calculations$dt>'2021-1-1',]
 
 current_total_cases <-
 total_cases_on_dt(provinces_data, days_before(provinces_data, 0))
@@ -268,6 +298,52 @@ provinces_per_capita <-
   rm(prov_per_capita_latest_sel)
 ```
 
+### Provinces - total cases per density (population per square kilometer).
+```{r echo=FALSE, message=FALSE} 
+
+provinces_calculations$total_case_density<-provinces_calculations$totale_casi/provinces_calculations$density
+provinces_per_density <-
+  select(
+  provinces_calculations,
+  dt,
+  denominazione_provincia,
+  totale_casi,
+  density,
+  total_case_density
+  )
+  most_recent_dt <- max(provinces_per_density$dt)
+  provinces_per_density <- arrange(provinces_per_density, -total_case_density)
+  #print(most_recent_dt)
+  
+  provinces_per_density_latest <-
+  provinces_per_density[provinces_per_density$dt == most_recent_dt, ]
+  provinces_per_density_latest$pos <-
+  nrow(provinces_per_density_latest) - rank(provinces_per_density_latest$total_case_density) +
+  1
+  prov_per_density_latest_sel <-
+  arrange(provinces_per_density_latest,-total_case_density)
+  provinces_per_density_latest_sel<-select(
+  provinces_per_density_latest,
+  pos,
+  denominazione_provincia,
+#  denominazione_regione,
+  total_case_density
+  )
+  
+#  prov_per_density_latest_sel$total_case_density<-round(prov_per_density_latest_sel$total_case_density, digits=2)
+  
+  prov_per_density_latest_sel<-rounded(prov_per_density_latest_sel, c("total_case_density"), 2)
+    
+  prov_per_density_latest_sel$dt<-NULL 
+
+  prov_per_density_latest_sel<-translated_province_column_names(prov_per_density_latest_sel)    
+  prov_per_density_latest_sel<-revised_province_column_names(prov_per_density_latest_sel)
+
+  print(prov_per_density_latest_sel, row.names = F)
+    
+  rm(prov_per_density_latest_sel)
+```
+
 ```{r echo=FALSE, message=FALSE} 
 write.csv(provinces_calculations,file.path(csv_exports_dir,"provinces_calculations.csv"))
 write.csv(provinces_trends,file.path(csv_exports_dir,"provinces_trends.csv"))
@@ -313,6 +389,12 @@ prov_calc_sel <- translated_province_column_names(prov_calc_sel)
 # restricted by date
 provinces_calculations<-provinces_calculations[provinces_calculations$dt>'2020-4-15',]
 
+```
+
+```{r echo=FALSE, message=FALSE}
+provinces_calculations_most_recent_dt<-provinces_calculations[provinces_calculations$dt==most_recent_dt,]
+histogram_title<-paste("Provinces histogram - growth in new cases",most_recent_dt)
+ggplot(provinces_calculations_most_recent_dt, aes(cubic_perc_rate))+geom_histogram(color="yellow",fill="#5a80b2")+labs(title=histogram_title, x="Weighted average percent rate for previous three days",y = "Number of provinces")
 ```
 
 ```{r  fig.height=5, fig.width=10, echo=FALSE, message=FALSE}
@@ -395,7 +477,17 @@ local_province_data[is.finite(local_province_data$seventh_perc_rate),]
 
 combined_chart<-provincial_combined_rates_chart(local_province_rates, local_province_name)
 
+num_days_in_the_past<-30 
+starting_dt<-max(local_province_rates$dt)-num_days_in_the_past 
+combined_chart_recent<-provincial_combined_rates_from_dt_chart(local_province_rates, local_province_name, starting_dt)
+
+
 print(combined_chart)
+print(paste("Shown in more detail: recent observations, for the past",num_days_in_the_past,"days"), row.names = FALSE, quote=FALSE)
+print(combined_chart_recent)
+rm(combined_chart)
+
+rm(combined_chart_recent)
 }
 
 rm(local_province_rates)
@@ -413,9 +505,6 @@ finish_time<-Sys.time()
 ```{r echo=FALSE, message=FALSE}
 finish_time<-Sys.time()
 running_time<-as.POSIXct(finish_time)-as.POSIXct(start_time)
-running_time<-paste(round(running_time, digits=3),"minutes")
-#*Processing time: `r running_time`*
+
 ```
-
-
----
+*This document's processing time: `r running_time`*

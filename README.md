@@ -2,11 +2,9 @@
 
 ### I. Introduction
 
-This repository contains some of my own, personal calculations, regarding the current COVID-10 epidemic in Italy.  
+This repository contains some of my own personal calculations regarding the COVID-19 epidemic in Italy.
 
-I do hope these charts and possible insights may be useful somehow, especially if you are in a professional capacity in this veritable fight against the disease. 
-
-*I am not an epidemiologist, just a simple mathematician.*
+If you have access to an RStudio environment, you may wish to clone the [Italia-COVID-19-R](https://github.com/meredoschi/Italia-COVID-19-R) project and generate the html documents yourself.
 
 ### II. About the project directories
 
@@ -16,17 +14,32 @@ Contains the source code I've programmed that was used to generate the html docu
 
 **Source code in R** 
 
+- [retrieve_protezione_civile_files](notebooks/retrieve_protezione_civile_files.Rmd)
+ 
+   Retrieves the latest daily csv data from the *Protezione Civile*.  
+
 - [national](notebooks/national.Rmd) 
 
-- [provincial](notebooks/provinces.Rmd)
+- [national_2022](notebooks/national_2022.Rmd) 
+
+   *This code was revised in part, so it should run faster than the original national notebook.*  
+
+   The **positives remaining (percent delta)** graph is a good indication of current trends and past waves. 
+   
+- [provinces](notebooks/provinces.Rmd)
+
+  Similarly, I watch for changes in the **provinces histogram - growth in new cases.** 
 
 - [helper_functions](notebooks/helper_functions.R)
 
 **Html documents (reports produced)** 
+*Contains 13 March 2022 data*
+
+- [national_2022](notebooks/national_2022.html) 
+
+- [provinces](notebooks/provinces.html)
 
 - [national](notebooks/national.html) 
-
-- [provincial](notebooks/provinces.html)
 
 #### csv_input 
 
@@ -35,10 +48,6 @@ The population data comes from [ISTAT](http://dati.istat.it/Index.aspx?QueryId=1
 ##### Protezione-Civile-Dataset
 
 The COVID-19 case information is from the [Dipartimento della Protezione Civile](http://www.protezionecivile.gov.it).  
-
-Using appropriate git commands (since I've included it as a git submodule), it should be possible to check if there were updates to the DPC CSV files.  
-
-In which case may I suggest that you ran the notebooks again, to see the latest results in your local environment.
 
 For questions or further information regarding the DPC project repository, kindly refer to: [https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19)
 
@@ -53,13 +62,15 @@ For questions or further information regarding the DPC project repository, kindl
 
 ---
 
-### III. Technical installation instructions 
+### III. Technical pre-requisites (installation is needed if you wish to calculate the notebooks yourself)
 
-#### *Pre-requisites*
+https://github.com/meredoschi/Italia-COVID-19-R
 
 + The [R programming language](https://cran.rstudio.com/). 
 
 + [RStudio software](https://rstudio.com/products/rstudio/download/) (the free, open source 'desktop' version should work just fine).
+
+ - To get the latest data simply run the [retrieve_protezione_civile_files](notebooks/retrieve_protezione_civile_files.Rmd) notebook.
 
 #### *Steps*
 
@@ -73,31 +84,22 @@ For questions or further information regarding the DPC project repository, kindl
    
   *Wait for the download to be completed and the project to be created.  It may take some seconds to a minute, depending on your connection.*
 
+
 2. Then select the git tab (inside RStudio) in the new project just created (upper right hand corner of the screen).
-
-- A tool icon should appear, just below the word Git. Click on the small arrow to its side and then select "Shell..."
-
-- After the shell prompt appears, type: `git submodule init; git submodule update` and then press ENTER (return) to confirm.  You may close this window and return to the project.  
 
 - (Optional but recommended) In the Files tab, make sure there is data inside the COVID-19 subdirectory (click on the Protezione-Civile-Dataset folder to navigate to it, if needed).
 
 --- 
 
-### IV. About my development environment 
+### IV. Current environment information 
 
-#### For interested scientists, doctors and other professionals.
-
-- R language version 3.6.3 (2020-02-29)
-- RStudio version 1.1.463
-- Git version 2.19.1
-- Operation system details:  OS X 10.11.6
-
-Depending on your specifics, you may wish to type on a terminal or git shell: 
-
-`git clone https://github.com/meredoschi/Italia-COVID-19 --recursive`
+- R language version: 4.1.2 (2021-11-01)
+- RStudio version: 1.4.1717
+- Git version: 2.25.1
+- Operating system: Linux 64 bits
 
 ---
 
 **Marcelo Eduardo Redoschi**
 
-*This page last updated: 25/4/2020*
+*This page last updated: 14/3/2022*

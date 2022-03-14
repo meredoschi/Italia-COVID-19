@@ -1,6 +1,6 @@
 # Marcelo Eduardo Redoschi
 # helper functions - COVID 19 calculations
-# Last updated: 11 - May - 2020
+# Last updated: 17 - May - 2020
 
 # Draft
 num_days_trailing_on_dt <-
@@ -137,30 +137,31 @@ backlog_dt  <- function(df, n) {
   min(temp$dt)
 }
 
-# df = dpc_provinces (from the Protezione Civile dataset)
-trentino_sudtirol_fix <-
-  function(df, trentino_sudtirol_region_name) {
-    df$denominazione_regione <- as.character(df$denominazione_regione)
-    
-    trentino_sudtirol_province_rows <-
-      grep("Trento|Bolzano", df$denominazione_provincia)
-    
-    matching_rows <- df[(trentino_sudtirol_province_rows),]
-    
-    for (i in 1:nrow(matching_rows)) {
-      matching_province <- matching_rows[i,]
-      
-      df[df$codice_provincia == matching_province$codice_provincia,]$denominazione_regione <-
-        trentino_sudtirol_region_name
-      
-    }
-    
-    # Convert column back to factor, after fixing it
-    df$denominazione_regione <- as.factor(df$denominazione_regione)
-    
-    df
-  }
 
+# df = dpc_provinces (from the Protezione Civile dataset)
+# trentino_sudtirol_fix <-
+#   function(df, trentino_sudtirol_region_name) {
+#     df$denominazione_regione <- as.character(df$denominazione_regione)
+#     
+#     trentino_sudtirol_province_rows <-
+#       grep("Trento|Bolzano", df$denominazione_provincia)
+#     
+#     matching_rows <- df[(trentino_sudtirol_province_rows),]
+#     
+#     for (i in 1:nrow(matching_rows)) {
+#       matching_province <- matching_rows[i,]
+#       
+#       df[df$codice_provincia == matching_province$codice_provincia,]$denominazione_regione <-
+#         trentino_sudtirol_region_name
+#       
+#     }
+#     
+#     # Convert column back to factor, after fixing it
+#     df$denominazione_regione <- as.factor(df$denominazione_regione)
+#     
+#     df
+#   }
+# 
 # df = provinces
 provinces_regional_territory_code_fix <- function(df) {
   df$regional_territory_code <-
@@ -193,9 +194,9 @@ expand_dt_columns <-
     for (recorded_dt in recorded_dates) {
       df_temp <-
         retrieve_attrib_value_on_dt(df,
-                                    recorded_dt,
-                                    nation_or_province_column_name,
-                                    attrib_column_name)
+                                    all_of(recorded_dt),
+                                    all_of(nation_or_province_column_name),
+                                    all_of(attrib_column_name))
       
       df <- inner_join(df, df_temp)
     }
@@ -272,37 +273,38 @@ rounded <- function(df, column_names_to_round, n) {
 #df = provinces_data (i.e. with province names as used by the dpc)
 # istat_provinces = Province names following ISTAT
 
-dpc_to_istat_province_name_fix <- function(df, istat_provinces_df) {
-  dpc_provinces <-
-    dpc_province_names(df) # makes use of helper function
-  province_names_to_adjust <-
-    setdiff(dpc_provinces,
-            as.character(istat_provinces_df$province_name))
-  
-  df$denominazione_provincia <-
-    as.character(df$denominazione_provincia)
-  for (i in 1:length(province_names_to_adjust)) {
-    province_name_initials <-
-      substring(province_names_to_adjust[i], 1, 5)
-    record_to_read_indx <-
-      grep(province_name_initials, istat_provinces$province_name)
-    formal_province_name <-
-      as.character(istat_provinces[record_to_read_indx, ]$province_name)
-    record_to_change_indx <-
-      grep(province_name_initials,
-           df$denominazione_provincia)
-    df$denominazione_provincia[record_to_change_indx] <-
-      as.character(formal_province_name) # from the ISTAT dataset
-    
-  }
-  
-  # convert province name (denominazione_provincia) column back to factor
-  df$denominazione_provincia <-
-    as.factor(df$denominazione_provincia)
-  
-  df
-  
-}
+# dpc_to_istat_province_name_fix <- function(df, istat_provinces_df) {
+#   dpc_provinces <-
+#     dpc_province_names(df) # makes use of helper function
+#   province_names_to_adjust <-
+#     setdiff(dpc_provinces,
+#             as.character(istat_provinces_df$province_name))
+#   
+#   df$denominazione_provincia <-
+#     as.character(df$denominazione_provincia)
+#   
+#   for (i in 1:length(province_names_to_adjust)) {
+#     province_name_initials <-
+#       substring(province_names_to_adjust[i], 1, 5)
+#     record_to_read_indx <-
+#       grep(province_name_initials, istat_provinces_df$province_name)
+#     formal_province_name <-
+#       as.character(istat_provinces_df[record_to_read_indx, ]$province_name)
+#     record_to_change_indx <-
+#       grep(province_name_initials,
+#            df$denominazione_provincia)
+#     df$denominazione_provincia[record_to_change_indx] <-
+#       as.character(formal_province_name) # from the ISTAT dataset
+#     
+#   }
+#   
+#   # convert province name (denominazione_provincia) column back to factor
+#   df$denominazione_provincia <-
+#     as.factor(df$denominazione_provincia)
+#   
+#   df
+#   
+# }
 
 
 consistent_region_names <- function(istat_df, dpc_df) {
@@ -316,6 +318,16 @@ consistent_region_names <- function(istat_df, dpc_df) {
     dpc_df,
     by = c('region_name' = 'denominazione_regione')
   ))$region_name
+}
+
+# df: dpc_covid19_ita_provinces
+forli_cesena_accent_fix <- function(df) {
+  df$denominazione_provincia_fixed <-
+    gsub('Forl“-Cesena', 'Forlì-Cesena', df$denominazione_provincia)
+  df$denominazione_provincia <- df$denominazione_provincia_fixed
+  df$denominazione_provincia_fixed <- NULL
+  df
+  
 }
 
 consistent_province_names <- function(istat_df, dpc_df) {
@@ -412,7 +424,7 @@ retrieve_attrib_value_on_dt <-
       select(
         df_data_for_specified_dt,
         all_of(nation_or_province_column_name),
-        attrib_column_name
+        all_of(attrib_column_name)
       )
     col_names <- colnames(df_attrib_for_dt)
     revised_col_names <-
@@ -539,165 +551,6 @@ retrieve_istat_provinces <- function(istat_df) {
   # Returns results sorted in alphabetical order by province name
   istat_provinces
 }
-
-# ----- Charts -----
-
-cubic_rate_boxplot_chart <-
-  function(df,
-           selected_region,
-           current_rate_color,
-           cubic_rate_color,
-           xlabel_text,
-           cubic_rate_line_type) {
-    cubic_chart_title <-
-      paste(
-        selected_region,
-        format(three_days_before, "%d %b"),
-        "-",
-        format(most_recent_dt, "%d %b %Y")
-      )
-    cubic_rate_chart <-
-      ggplot(df) + geom_boxplot(
-        aes(y = cubic_perc_rate, x = denominazione_provincia),
-        color = current_rate_color,
-        linetype = cubic_rate_line_type
-      ) + geom_boxplot(aes(y = current_perc_rate, x = denominazione_provincia),
-                       color = cubic_rate_color) + ggtitle(cubic_chart_title) + xlab(xlabel_text) + ylab("current vs. 3 day % rate")
-    
-  }
-
-styled_x_axis <- function(chart, font_size, font_angle)  {
-  label_text_style <-
-    element_text(
-      face = "bold",
-      color = "black",
-      size = font_size,
-      angle = font_angle
-    )
-  
-  chart <- chart + theme(axis.text.x = label_text_style)
-  
-  chart
-}
-# More generic formulation
-current_and_cubic_rate_chart <-
-  function(df,
-           title_txt,
-           x_label_prefix,
-           current_rate_color,
-           cubic_rate_color) {
-    chart <-
-      ggplot(data = df) + geom_line(aes(x = dt, y = cubic_perc_rate),
-                                    color = cubic_rate_color,
-                                    linetype = 2) + geom_line(aes(x = dt, y = current_perc_rate), color = current_rate_color) +
-      ggtitle(title_txt) + xlab(paste(
-        x_label_prefix,
-        format(min(df$dt), "%d %b"),
-        "-",
-        format(max(df$dt), "%d %b %Y")
-      )) + ylab("current vs. cubic (last three days) % growth rate")
-    chart
-  }
-
-# More generic formulation
-current_and_seven_day_rate_chart <-
-  function(df,
-           title_txt,
-           x_label_prefix,
-           current_rate_color,
-           seventh_rate_color) {
-    chart <-
-      ggplot(data = df) + geom_line(aes(x = dt, y = seventh_perc_rate),
-                                    color = seventh_rate_color,
-                                    linetype = 3) + geom_line(aes(x = dt, y = current_perc_rate), color = current_rate_color) +
-      ggtitle(title_txt) + xlab(paste(
-        x_label_prefix,
-        format(min(df$dt), "%d %b"),
-        "-",
-        format(max(df$dt), "%d %b %Y")
-      )) + ylab("current vs. previous 7 day average % growth rate")
-    chart
-  }
-
-
-# More generic formulation
-combined_rates_chart <-
-  function(df,
-           title_txt,
-           x_label_prefix,
-           current_rate_color,
-           cubic_rate_color,
-           seventh_rate_color) {
-    chart <-
-      ggplot(data = df) + geom_line(aes(x = dt, y = seventh_perc_rate),
-                                    color = seventh_rate_color,
-                                    linetype = 2) + geom_line(aes(x = dt, y = current_perc_rate), color = current_rate_color) +
-      geom_line(aes(x = dt, y = cubic_perc_rate),
-                color = cubic_rate_color,
-                linetype = 4) +
-      ggtitle(title_txt) + xlab(paste(
-        x_label_prefix,
-        format(min(df$dt), "%d %b"),
-        "-",
-        format(max(df$dt), "%d %b %Y")
-      )) + ylab("current vs. previous 3 and 7 day average % growth rates")
-    chart
-  }
-
-provincial_cubic_rate_chart <-
-  function(df, selected_province_name) {
-    # Set the appropriate parameters
-    title_txt <- paste(selected_province_name, "province")
-    x_label_prefix <- 'COVID-19 total case progression'
-    current_rate_color <- "#017365"
-    cubic_rate_color <- "#540331"
-    
-    current_and_cubic_rate_chart(df,
-                                 title_txt,
-                                 x_label_prefix,
-                                 current_rate_color,
-                                 cubic_rate_color)
-    
-  }
-
-provincial_combined_rates_chart <-
-  function(df, selected_province_name) {
-    # Set the appropriate parameters
-    title_txt <- paste(selected_province_name, "province")
-    x_label_prefix <- 'COVID-19 total case progression'
-    current_rate_color <- "#017365"
-    cubic_rate_color <- "#540331"
-    seventh_rate_color <- "orange"
-    
-    combined_rates_chart(
-      df,
-      title_txt,
-      x_label_prefix,
-      current_rate_color,
-      cubic_rate_color,
-      seventh_rate_color
-    )
-    
-  }
-
-provincial_seven_day_rate_chart <-
-  
-  function(df, selected_province_name) {
-    # Set the appropriate parameters
-    
-    title_txt <- paste(selected_province_name, "province")
-    x_label_prefix <- 'COVID-19 total case progression'
-    current_rate_color <- "#017365"
-    seventh_rate_color <- "#A8B600"
-    
-    current_and_seven_day_rate_chart(df,
-                                     title_txt,
-                                     x_label_prefix,
-                                     current_rate_color,
-                                     seventh_rate_color)
-    
-  }
-
 
 # ----- Column translations -----
 
